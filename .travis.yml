@@ -3,7 +3,7 @@ python: 3.8
 cache: pip
 
 before_install:
-- pip install -r requirements/base.requirements
+- pip install -r requirements/all.requirements
 
 jobs:
   include:
