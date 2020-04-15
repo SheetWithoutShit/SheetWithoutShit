@@ -1,29 +1,24 @@
 """This module provides utils for parsing config."""
+
 import argparse
-import pathlib
+import os
 
-import trafaret as T
-from trafaret_config import commandline
-
-TRAFARET = T.Dict({
-    T.Key('host'): T.IP,
-    T.Key('port'): T.Int(),
-})
-
-BASE_DIR = pathlib.Path(__file__).parent.parent
-DEFAULT_CONFIG_PATH = BASE_DIR / 'config' / 'default.yaml'
+DEFAULT_HOST = os.getenv('DEFAULT_HOST')
+DEFAULT_PORT = os.getenv('DEFAULT_PORT')
 
 
 def get_config(argv=None):
     """Parse configs from command line."""
-    arg_parser = argparse.ArgumentParser()
-    commandline.standard_argparse_options(
-        arg_parser,
-        default_config=DEFAULT_CONFIG_PATH
-    )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", type=str,
+                        help="Setup application host")
+    parser.add_argument("--port", type=int,
+                        help="Setup application port")
 
     # ignore unknown options
-    options, _ = arg_parser.parse_known_args(argv)
-
-    config = commandline.config_from_options(options, TRAFARET)
+    options, _ = parser.parse_known_args(argv)
+    config = {
+        'host': options.host if options.host is not None else DEFAULT_HOST,
+        'port': options.port if options.port is not None else DEFAULT_PORT
+    }
     return config
