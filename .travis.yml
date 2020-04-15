@@ -8,7 +8,7 @@ before_install:
 jobs:
   include:
   - stage: "Lint"
-    script: pylint --rcfile=./app/.pylintrc ./app/
+    script: pylint --rcfile=.pylintrc ./collector/app/
 
 branches:
   only:

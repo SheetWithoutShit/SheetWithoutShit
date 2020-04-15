@@ -5,7 +5,7 @@ import os
 from core.http import HTTPRequest
 from utils.request import format_params
 
-from collector.endpoints import (
+from endpoints import (
     SPREADSHEET_OAUTH,
     SPREADSHEET_SCOPE,
     SPREADSHEET_TOKEN
