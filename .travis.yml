@@ -3,12 +3,12 @@ python: 3.8
 cache: pip
 
 before_install:
-- pip install -r requirements/all.requirements
+- pip install -r collector/requirements.txt
 
 jobs:
   include:
   - stage: "Lint"
-    script: pylint --rcfile=./app/.pylintrc ./app/
+    script: pylint --rcfile=.pylintrc ./collector/app/
 
 branches:
   only:

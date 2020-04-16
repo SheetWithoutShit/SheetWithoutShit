@@ -2,7 +2,7 @@
 
 from core.http import HTTPRequest
 
-from collector.endpoints import SPREADSHEET_API
+from endpoints import SPREADSHEET_API
 
 
 class SpreadsheetAPI(HTTPRequest):
