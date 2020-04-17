@@ -1,7 +1,7 @@
 """This module provides interactions with google spreadsheet API."""
 
 from core.http import HTTPRequest
-
+from core.decorators import aioshield
 from endpoints import SPREADSHEET_API
 
 
@@ -22,6 +22,7 @@ class SpreadsheetAPI(HTTPRequest):
             "Authorization": f"Bearer {token}"
         }
 
+    @aioshield
     async def create_spreadsheet(self, token, spreadsheet_name):
         """Create a spreadsheet, return the newly created spreadsheet."""
         body = {"properties": {"title": spreadsheet_name}}
@@ -30,6 +31,7 @@ class SpreadsheetAPI(HTTPRequest):
         response = await self.post(url=SPREADSHEET_API, headers=headers, body=body)
         return response
 
+    @aioshield
     async def add_sheet(self, token, spreadsheet_id, sheet_name):
         """Add a new sheet to an existing user`s spreadsheet with provided name."""
         url = f"{SPREADSHEET_API}/{spreadsheet_id}:batchUpdate"
@@ -50,6 +52,7 @@ class SpreadsheetAPI(HTTPRequest):
         response = await self.get(url, headers=headers)
         return response
 
+    @aioshield
     async def update_sheet(self, token, spreadsheet_id, modifications, input_option):
         """Set values in one or more ranges of a spreadsheet."""
         url = f'{SPREADSHEET_API}/{spreadsheet_id}/values:batchUpdate'

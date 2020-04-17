@@ -4,9 +4,11 @@ from aiohttp.web import RouteTableDef, json_response
 
 from utils.file import write_json
 
+
 routes = RouteTableDef()
 
 
+# TODO: plan to move server application
 @routes.post('/register')
 async def register_token(request):
     """Retrieve user's data and set webhook."""
