@@ -1,6 +1,7 @@
 """This module provides interactions with monobank API."""
 
 from core.http import HTTPRequest
+from core.decorators import aioshield
 from endpoints import MONOBANK_API
 
 
@@ -22,6 +23,7 @@ class MonoBankAPI(HTTPRequest):
         response = await self.get(url=user_data_url, headers=headers)
         return response
 
+    @aioshield
     async def set_webhook(self, token, base_url, user_id):
         """Set webhook by user's token and form webhook url based on collector's host and user's id."""
         webhook_url = f'{MONOBANK_API}/personal/webhook'

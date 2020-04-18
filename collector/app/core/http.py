@@ -2,30 +2,38 @@
 
 import aiohttp
 
+from core.decorators import aiowait
+
 
 class HTTPRequest:
     """Class that provides http basic async requests."""
 
-    def __init__(self):
+    def __init__(self, timeout=60):
         """Initialize client session for async http requests."""
-        self.session = aiohttp.ClientSession()
+        timeout = aiohttp.ClientTimeout(total=timeout)
+        self._session = aiohttp.ClientSession(timeout=timeout)
+
+    @aiowait(timeout=10)
+    async def close(self):
+        """Release gracefully all acquired resources."""
+        await self._session.close()
 
     async def get(self, url, headers=None, params=None):
         """Return response from async get http request in json format."""
-        async with self.session.get(url, headers=headers, params=params) as response:
+        async with self._session.get(url, headers=headers, params=params) as response:
             return await response.json(), response.status
 
     async def post(self, url, headers=None, body=None):
         """Return response from async post http request in json format."""
-        async with self.session.post(url, headers=headers, json=body) as response:
+        async with self._session.post(url, headers=headers, json=body) as response:
             return await response.json(), response.status
 
     async def delete(self, url, headers=None):
         """Return response from async delete http request in json format."""
-        async with self.session.delete(url, headers=headers) as response:
+        async with self._session.delete(url, headers=headers) as response:
             return await response.json(), response.status
 
     async def put(self, url, headers=None, body=None):
         """Return response from async put http request in json format."""
-        async with self.session.delete(url, headers=headers, json=body) as response:
+        async with self._session.delete(url, headers=headers, json=body) as response:
             return await response.json(), response.status
