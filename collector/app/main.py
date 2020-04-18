@@ -2,6 +2,7 @@
 
 import os
 import asyncio
+import logging
 
 from aiohttp.web import Application, run_app
 
@@ -11,6 +12,25 @@ from core.spreadsheet.api import SpreadsheetAPI
 from core.spreadsheet.auth import SpreadsheetAuth
 from core.database.postgres import PoolManager as PGPoolManager
 from core.database.redis import PoolManager as RedisPoolManager
+
+
+def init_logger():
+    """Initialize stream and file logger if it is available."""
+    log_format = "%a %t [VIEW: %r] [RESPONSE: %s (%bb)] [TIME: %Dms]"
+
+    logger = logging.getLogger("aiohttp.access")
+    logger.setLevel(logging.INFO)
+
+    stream_handler = logging.StreamHandler()
+    logger.addHandler(stream_handler)
+
+    log_dir = os.environ.get("COLLECTOR_LOG_DIR")
+    log_filepath = f'{log_dir}/collector.log'
+    if log_dir and os.path.exists(log_filepath) and os.access(log_filepath, os.W_OK):
+        file_handler = logging.FileHandler(log_filepath)
+        logger.addHandler(file_handler)
+
+    return logger, log_format
 
 
 async def init_clients(app):
@@ -35,16 +55,19 @@ async def init_clients(app):
 # TODO: read about debug mode
 def main():
     """Create aiohttp web server and run it."""
-    app = Application()
+    host = os.environ.get("COLLECTOR_HOST", "127.0.0.1")
+    port = os.environ.get("COLLECTOR_PORT", 8000)
+
+    logger, log_format = init_logger()
+    app = Application(logger=logger)
     app.add_routes(routes)
     app.cleanup_ctx.append(init_clients)
 
-    host = os.environ.get("DEFAULT_HOST", "127.0.0.1")
-    port = os.environ.get("DEFAULT_PORT", 8000)
     run_app(
         app,
         host=host,
-        port=port
+        port=port,
+        access_log_format=log_format
     )
 
 
