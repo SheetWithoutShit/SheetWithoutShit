@@ -2,7 +2,7 @@
 
 from aiohttp.web import RouteTableDef, json_response
 
-from utils.file import write_json
+from core.utils.file import write_json
 
 
 routes = RouteTableDef()

@@ -6,10 +6,11 @@ import asyncio
 from aiohttp.web import Application, run_app
 
 from views import routes
-from monobank.api import MonoBankAPI
-from spreadsheet.api import SpreadsheetAPI
-from spreadsheet.auth import SpreadsheetAuth
-from core.database import PoolManager
+from core.monobank.api import MonoBankAPI
+from core.spreadsheet.api import SpreadsheetAPI
+from core.spreadsheet.auth import SpreadsheetAuth
+from core.database.postgres import PoolManager as PGPoolManager
+from core.database.redis import PoolManager as RedisPoolManager
 
 
 async def init_clients(app):
@@ -17,7 +18,8 @@ async def init_clients(app):
     app["monobank_api"] = monobank_api = MonoBankAPI()
     app["spreadsheet_api"] = spreadsheet_api = SpreadsheetAPI()
     app["spreadsheet_auth"] = spreadsheet_auth = SpreadsheetAuth()
-    app["postgres"] = postgres = await PoolManager.create()
+    app["postgres"] = postgres = await PGPoolManager.create()
+    app["redis"] = redis = await RedisPoolManager.create()
 
     yield
 
@@ -25,7 +27,8 @@ async def init_clients(app):
         monobank_api.close(),
         spreadsheet_api.close(),
         spreadsheet_auth.close(),
-        postgres.close()
+        postgres.close(),
+        redis.close()
     )
 
 

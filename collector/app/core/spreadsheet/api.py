@@ -2,7 +2,9 @@
 
 from core.http import HTTPRequest
 from core.decorators import aioshield
-from endpoints import SPREADSHEET_API
+
+
+SPREADSHEET_API = "https://sheets.googleapis.com/v4/spreadsheets"
 
 
 class SpreadsheetAPI(HTTPRequest):
