@@ -4,11 +4,12 @@ import os
 from urllib import parse
 
 from core.http import HTTPRequest
-from endpoints import (
-    SPREADSHEET_OAUTH,
-    SPREADSHEET_SCOPE,
-    SPREADSHEET_TOKEN
-)
+from core.decorators import aioshield
+
+
+SPREADSHEET_TOKEN = "https://oauth2.googleapis.com/token"
+SPREADSHEET_OAUTH = "https://accounts.google.com/o/oauth2/v2/auth"
+SPREADSHEET_SCOPE = "https://www.googleapis.com/auth/spreadsheets"
 
 
 class SpreadsheetAuth(HTTPRequest):
@@ -35,7 +36,7 @@ class SpreadsheetAuth(HTTPRequest):
         }
         return f'{SPREADSHEET_OAUTH}?{parse.urlencode(params)}'
 
-    # TODO: add shield ?
+    @aioshield
     async def fetch_credentials(self, auth_code):
         """
         Return received user credentials for provided auth code.
@@ -52,7 +53,6 @@ class SpreadsheetAuth(HTTPRequest):
         credentials = await self.post(SPREADSHEET_TOKEN, body=payload)
         return credentials
 
-    # TODO: add shield ?
     async def refresh_credentials(self, refresh_token):
         """
         Return refreshed access token for user. Response contains

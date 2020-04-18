@@ -2,7 +2,9 @@
 
 from core.http import HTTPRequest
 from core.decorators import aioshield
-from endpoints import MONOBANK_API
+
+
+MONOBANK_API = 'https://api.monobank.ua'
 
 
 class MonoBankAPI(HTTPRequest):
