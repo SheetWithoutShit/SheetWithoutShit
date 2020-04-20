@@ -1,0 +1,5 @@
+Click==7.1.1
+agnostic==1.0.2
+sqlparse==0.2.4
+pg8000==1.15.2
+scramp==1.1.1
