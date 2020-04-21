@@ -44,10 +44,17 @@ class PoolManager:
         self.pool.close()
         await self.pool.wait_closed()
 
-    async def get(self, key):
-        """Get the value of a key."""
+    async def get(self, key, deserialize=False, default=None):
+        """
+        Get the value of a key and deserialize it if required.
+        Return default value if key does not exist.
+        """
         with await self.pool as con:
-            return await con.execute("get", key)
+            value = await con.execute("get", key)
+            if value is not None and deserialize:
+                return pickle.loads(value)
+
+            return value if value is not None else default
 
     @aioshield
     async def set(self, key, value, expire=None):
@@ -62,8 +69,8 @@ class PoolManager:
         """Set key to hold the serialized value with expire time if provided."""
         return await self.set(key, pickle.dumps(value), expire)
 
-    async def load(self, key):
-        """Get deserialized value of a key."""
-        value = await self.get(key)
-        if value:
-            return pickle.loads(value)
+    @aioshield
+    async def remove(self, *keys):
+        """Removes the specified keys. A key is ignored if it does not exist."""
+        with await self.pool as con:
+            return await con.execute("del", *keys)

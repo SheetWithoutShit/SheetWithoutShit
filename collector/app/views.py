@@ -2,6 +2,7 @@
 
 from aiohttp.web import RouteTableDef, json_response
 
+from core.monobank.api import parse_transaction_response
 from core.utils.file import write_json
 
 
@@ -33,9 +34,15 @@ async def register_token(request):
 @routes.post('/receiver/{user_id}')
 async def receive_transaction(request):
     """Receive transaction from webhook and fill transaction data in DB and spreadsheets."""
-    user_id = request.match_info['user_id']
+    transaction = request.app["monobank_api"]
+    user_id = request.match_info["user_id"]
+
     data = await request.json()
-    transaction_id = data['data']['statementItem']['id']
-    # todo: use this data to fill in DB and spreadsheets
-    await write_json(data, transaction_id)
-    return json_response(data={'message': 'success', 'user': user_id, 'data': data})
+    transaction_item = parse_transaction_response(data)
+    await transaction.save_transaction(user_id, transaction_item)
+
+    return json_response(data={
+        "message": "success",
+        "user": user_id,
+        "data": transaction_item
+    })

@@ -23,6 +23,7 @@ TODO
     sudo -u postgres psql
     postgres=# CREATE USER <db_user> PASSWORD '<db_password>';
     postgres=# CREATE DATABASE <db_name> OWNER <db_user>;
+    postgres=# SET TIME ZONE 'Europe/Kiev';
     ```
 4. Initialize database:
     ```shell script

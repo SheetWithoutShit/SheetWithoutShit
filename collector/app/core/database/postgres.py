@@ -50,10 +50,10 @@ class PoolManager:
         await self.pool.close()
 
     @aioshield
-    async def execute(self, query, timeout=5.0):
+    async def execute(self, query, *query_args, timeout=5.0):
         """Execute an SQL command (or commands)."""
         async with self.pool.acquire() as con:
-            return await con.execute(query, timeout=timeout)
+            return await con.execute(query, *query_args, timeout=timeout)
 
     async def fetch(self, query, timeout=5.0):
         """Run a query and return the results as a list."""
