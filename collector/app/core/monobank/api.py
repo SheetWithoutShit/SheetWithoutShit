@@ -1,10 +1,25 @@
 """This module provides interactions with monobank API."""
 
+
 from core.http import HTTPRequest
 from core.decorators import aioshield
 
 
 MONOBANK_API = 'https://api.monobank.ua'
+
+
+def parse_transaction_response(response):
+    """Parse response from monobank API and return formatted transaction."""
+    statement = response["data"]["statementItem"]
+    return {
+        "id": statement["id"],
+        "amount": statement["amount"],
+        "balance": statement["balance"],
+        "cashback": statement["cashbackAmount"],
+        "info": statement["description"],
+        "mcc": statement["mcc"],
+        "timestamp": statement["time"]
+    }
 
 
 class MonoBankAPI(HTTPRequest):
