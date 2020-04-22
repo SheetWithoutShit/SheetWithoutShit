@@ -34,7 +34,7 @@ async def register_token(request):
 @routes.post('/receiver/{user_id}')
 async def receive_transaction(request):
     """Receive transaction from webhook and fill transaction data in DB and spreadsheets."""
-    transaction = request.app["monobank_api"]
+    transaction = request.app["transaction"]
     user_id = request.match_info["user_id"]
 
     data = await request.json()

@@ -4,4 +4,6 @@
 \i schema/budget.sql;
 \i schema/transaction.sql;
 
+\i triggers/income.sql;
+
 \i data/mcc.sql;
