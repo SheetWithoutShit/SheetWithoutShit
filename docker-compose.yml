@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:10
+    container_name: sws_postgres
+    working_dir: /docker-entrypoint-initdb.d
+    env_file:
+      - .env
+    ports:
+      - ${POSTGRES_PORT:-5432}
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d/
+      - postgres-data:/var/lib/postgresql/data/
+
+  redis:
+    image: redis:5
+    container_name: sws_redis
+    ports:
+      - ${REDIS_PORT:-6379}
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  collector:
+    container_name: sws_collector
+    build: ./collector
+    command: python app/main.py
+    env_file:
+      - .env
+    volumes:
+      - ./collector:/collector
+      - /var/log/sws/collector.log:/var/log/sws/collector.log
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - ${COLLECTOR_PORT:-8001}:${COLLECTOR_PORT:-8001}
+
+volumes:
+  postgres-data:

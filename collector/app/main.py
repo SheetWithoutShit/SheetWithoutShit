@@ -71,7 +71,7 @@ async def init_clients(app):
 
 def main():
     """Create aiohttp web server and run it."""
-    host = os.environ.get("COLLECTOR_HOST", "127.0.0.1")
+    host = os.environ.get("COLLECTOR_HOST", "localhost")
     port = os.environ.get("COLLECTOR_PORT", 8000)
 
     app = Application()
