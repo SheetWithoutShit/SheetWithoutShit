@@ -1,12 +1,21 @@
-Sheet Without Shit
+# Sheet Without Shit
 
-> [![Build Status](https://travis-ci.com/SheetWithoutShit/SheetWithoutShit.svg?branch=develop)](https://travis-ci.com/SheetWithoutShit/SheetWithoutShit) 
+> [![Build Status](https://travis-ci.com/SheetWithoutShit/SheetWithoutShit.svg?branch=develop)](https://travis-ci.com/SheetWithoutShit/SheetWithoutShit)
 
-### Overview
-TODO
 
-### Installing
-1. Install redis:
+### Installing [docker]
+1. Create `.env` file in the root of the project with the variables provided in [.env](#environment-variables).
+2. Run containers:
+    ```shell script
+    docker-compose up
+    ```
+### Installing [manual]
+1. Create `.env` file in the root of the project with the variables provided in [.env](#environment-variables).
+2. Run command to establish environment variables:
+    ```shell script
+    source .env
+    ```
+3. Install redis:
     ```shell script
     sudo apt-get install redis-server
 
@@ -14,25 +23,26 @@ TODO
     redis-cli ping
     PONG
     ```
-2. Install postgres:
+4. Install postgres:
     ```shell script
     sudo apt install postgresql postgresql-contrib
     ```
-3. Create user and database:
+5. Create user and database:
     ```shell script
     sudo -u postgres psql
-    postgres=# CREATE USER <db_user> PASSWORD '<db_password>';
-    postgres=# CREATE DATABASE <db_name> OWNER <db_user>;
+    postgres=# CREATE USER ${POSTGRES_USER} PASSWORD ${POSTGRES_PASSWORD};
+    postgres=# CREATE DATABASE ${POSTGRES_DATABASE} OWNER ${POSTGRES_USER};
     postgres=# SET TIME ZONE 'Europe/Kiev';
     ```
-4. Initialize database:
+6. Initialize database:
     ```shell script
     cd ./postgres
-    psql -U <db_user> -d <db_name> -a -f createdb.sql
+    psql -U ${POSTGRES_USER} -d ${POSTGRES_DATABASE} -a -f createdb.sql
     ```
-5. Install project dependencies:
+7. Install project dependencies:
     ```shell script
     pip install -r ./requirements.txt
+    pip install -r ./collector/requirements.txt
     ```
 
 ### Commands
@@ -57,3 +67,30 @@ TODO
     ```shell script
     agnostic -t postgres -u <user> --password <password> -d <db name> -m ./postgres/migrations -h <host> -p <port> test
     ```
+
+### Environment variables
+```shell script
+SPREADSHEET_REDIRECT_URI=
+SPREADSHEET_CLIENT_ID=
+SPREADSHEET_CLIENT_SECRET=
+
+POSTGRES_DNS=
+POSTGRES_HOST=
+POSTGRES_PORT=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_DB=
+
+REDIS_HOST=
+REDIS_PORT=
+REDIS_PASSWORD=
+REDIS_TIMEOUT=
+
+COLLECTOR_HOST=
+COLLECTOR_PORT=
+COLLECTOR_LOG_DIR=
+POSTGRES_CONNECTION_MIN_SIZE=
+POSTGRES_CONNECTION_MAX_SIZE=
+REDIS_CONNECTION_MIN_SIZE=
+REDIS_CONNECTION_MAX_SIZE=
+```

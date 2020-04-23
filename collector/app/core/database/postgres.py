@@ -19,7 +19,7 @@ class PoolManager:
 
         self.user = os.environ["POSTGRES_USER"]
         self.password = os.environ["POSTGRES_PASSWORD"]
-        self.database = os.environ["POSTGRES_DATABASE"]
+        self.database = os.environ["POSTGRES_DB"]
 
         self.connection_min_size = os.environ.get("POSTGRES_CONNECTION_MIN_SIZE", 10)
         self.connection_max_size = os.environ.get("POSTGRES_CONNECTION_MAX_SIZE", 10)
