@@ -5,26 +5,24 @@ import asyncio
 import logging
 
 from aiohttp.web import Application, run_app
-
-from views import routes
-from core.constants import ACCESS_LOG_FORMAT, LOG_FORMAT
-from core.monobank.api import MonoBankAPI
-from core.spreadsheet.api import SpreadsheetAPI
-from core.spreadsheet.auth import SpreadsheetAuth
 from core.database.postgres import PoolManager as PGPoolManager
 from core.database.redis import PoolManager as RedisPoolManager
-from core.database.queries import SELECT_MCC_CODES
-from core.models.transaction import Transaction
+
+from views import routes
+from transaction import Transaction, SELECT_MCC_CODES
+from spreadsheet import SpreadsheetAPI, SpreadsheetAuth
 
 
 LOG = logging.getLogger("")
+LOG_FORMAT = "%(asctime)s - %(levelname)s: %(name)s: %(message)s"
+ACCESS_LOG_FORMAT = "%a [VIEW: %r] [RESPONSE: %s (%bb)] [TIME: %Dms]"
 
 
 def init_logging():
     """Initialize stream and file logger if it is available."""
     logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
 
-    log_dir = os.environ.get("COLLECTOR_LOG_DIR")
+    log_dir = os.environ.get("LOG_DIR")
     log_filepath = f'{log_dir}/collector.log'
     if log_dir and os.path.exists(log_filepath) and os.access(log_filepath, os.W_OK):
         formatter = logging.Formatter(LOG_FORMAT)
@@ -48,7 +46,6 @@ async def prepare_data(app):
 
 async def init_clients(app):
     """Initialize application with clients."""
-    app["monobank_api"] = monobank_api = MonoBankAPI()
     app["spreadsheet_api"] = spreadsheet_api = SpreadsheetAPI()
     app["spreadsheet_auth"] = spreadsheet_auth = SpreadsheetAuth()
     app["postgres"] = postgres = await PGPoolManager.create()
@@ -60,7 +57,6 @@ async def init_clients(app):
     yield
 
     await asyncio.gather(
-        monobank_api.close(),
         spreadsheet_api.close(),
         spreadsheet_auth.close(),
         postgres.close(),
@@ -72,7 +68,7 @@ async def init_clients(app):
 def main():
     """Create aiohttp web server and run it."""
     host = os.environ.get("COLLECTOR_HOST", "localhost")
-    port = os.environ.get("COLLECTOR_PORT", 8000)
+    port = os.environ.get("COLLECTOR_PORT", 5010)
 
     app = Application()
 

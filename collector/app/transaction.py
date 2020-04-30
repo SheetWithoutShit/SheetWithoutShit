@@ -5,10 +5,18 @@ from datetime import datetime
 
 from asyncpg import exceptions
 
-from core.database.queries import INSERT_TRANSACTION
-
 
 LOG = logging.getLogger(__name__)
+
+
+INSERT_TRANSACTION = """
+    INSERT INTO "TRANSACTION" (id, user_id, amount, balance, cashback, mcc, timestamp, info)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+"""
+
+SELECT_MCC_CODES = """
+    SELECT code FROM "MCC";
+"""
 
 
 class Transaction:
@@ -45,4 +53,4 @@ class Transaction:
         try:
             await self._postgres.execute(INSERT_TRANSACTION, *query_args)
         except exceptions.PostgresError as err:
-            LOG.error(f"Could not insert transaction for user={user_id}: {transaction}. Error: {err}")
+            LOG.error("Could not insert transaction for user=%s: %s. Error: %s", user_id, transaction, err)
