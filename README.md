@@ -1,6 +1,6 @@
 # Sheet Without Shit
 
-> [![Build Status](https://travis-ci.com/SheetWithoutShit/SheetWithoutShit.svg?branch=develop)](https://travis-ci.com/SheetWithoutShit/SheetWithoutShit)
+>[![Travis CI](https://travis-ci.com/SheetWithoutShit/sws.svg?branch=develop)](https://travis-ci.com/SheetWithoutShit/sws)
 
 
 ### Installing [docker]
@@ -80,17 +80,18 @@ POSTGRES_PORT=
 POSTGRES_USER=
 POSTGRES_PASSWORD=
 POSTGRES_DB=
+POSTGRES_CONNECTION_MIN_SIZE=
+POSTGRES_CONNECTION_MAX_SIZE=
 
 REDIS_HOST=
 REDIS_PORT=
 REDIS_PASSWORD=
 REDIS_TIMEOUT=
+REDIS_CONNECTION_MIN_SIZE=
+REDIS_CONNECTION_MAX_SIZE=
 
 COLLECTOR_HOST=
 COLLECTOR_PORT=
-COLLECTOR_LOG_DIR=
-POSTGRES_CONNECTION_MIN_SIZE=
-POSTGRES_CONNECTION_MAX_SIZE=
-REDIS_CONNECTION_MIN_SIZE=
-REDIS_CONNECTION_MAX_SIZE=
+
+LOG_DIR=
 ```
