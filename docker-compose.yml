@@ -38,6 +38,21 @@ services:
     ports:
       - ${COLLECTOR_PORT:-5010}:${COLLECTOR_PORT:-5010}
 
+  server:
+    container_name: sws_server
+    build: ./server
+    command: python /server/app/main.py
+    env_file:
+      - .env
+    volumes:
+      - ./server:/server
+      - /var/log/sws/server.log:/var/log/sws/server.log
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - ${SERVER_PORT:-5000}:${SERVER_PORT:-5000}
+
   telegram:
     container_name: sws_telegram
     build: ./telegram
@@ -50,8 +65,7 @@ services:
     depends_on:
       - postgres
       - redis
-      - collector
-
+      - server
 
 volumes:
   postgres-data:
