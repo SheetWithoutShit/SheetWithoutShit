@@ -5,6 +5,7 @@ cache: pip
 before_install:
 - pip install -r collector/requirements.txt
 - pip install -r telegram/requirements.txt
+- pip install -r server/requirements.txt
 - pip install -r requirements.txt
 
 jobs:
@@ -13,6 +14,7 @@ jobs:
     script:
       - pylint --rcfile=.pylintrc ./collector/app/
       - pylint --rcfile=.pylintrc ./telegram/app/
+      - pylint --rcfile=.pylintrc ./server/app/
 
 branches:
   only:
