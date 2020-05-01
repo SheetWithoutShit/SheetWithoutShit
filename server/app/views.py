@@ -1,32 +1,103 @@
 """This module provides views for server app."""
 
-from aiohttp.web import RouteTableDef, json_response
+from aiohttp import web
 
 
-routes = RouteTableDef()
+routes = web.RouteTableDef()
 
 
-@routes.post('/user')
-async def user_register(request):
-    """Create new user to database."""
-    data = await request.json()
-    user = request.app["user"]
+@routes.view('/user')
+class UserView(web.View):
+    """Views to interact with user`s data."""
 
-    telegram_id = data.get("telegram_id")
-    if not telegram_id:
-        return json_response(
-            data={"message": "The field `telegram_id` wasn't provided"},
-            status=400
+    async def post(self):
+        """Create new user in database."""
+        data = await self.request.json()
+        user = self.request.app["user"]
+
+        if not data.get("telegram_id"):
+            return web.json_response(
+                data={
+                    "success": False,
+                    "message": "The field `telegram_id` wasn't provided."
+                },
+                status=400
+            )
+
+        created = await user.create_user(data)
+        if not created:
+            return web.json_response(
+                data={
+                    "success": False,
+                    "message": "The user wasn't created. Something went wrong. Try again, please."
+                },
+                status=400
+            )
+
+        return web.json_response(
+            data={
+                "success": True,
+                "message": "The user was successfully created."
+            },
+            status=200
         )
 
-    created = await user.create_user(telegram_id)
-    if not created:
-        return json_response(
-            data={"message": "The user wasn't created. Something went wrong. Try again, please."},
-            status=400
+
+@routes.view('/spreadsheet')
+class SpreadsheetView(web.View):
+    """View to interact with spreadsheet`s data"""
+
+    async def get(self):
+        """
+        Return formatted authorization url in order to
+        get access to user`s google spreadsheet account.
+        """
+        spreadsheet_auth = self.request.app["spreadsheet_auth"]
+        return web.json_response(
+            data={
+                "success": True,
+                "auth_url": spreadsheet_auth.auth_url
+            },
+            status=200
         )
 
-    return json_response(
-        data={"message": "The user was successfully created."},
-        status=200
-    )
+    async def post(self):
+        """Update user`s spreadsheet refresh token."""
+        data = await self.request.json()
+
+        telegram_id, auth_code = data.get("telegram_id"), data.get("auth_code")
+        if not auth_code or not telegram_id:
+            return web.json_response(
+                data={
+                    "success": False,
+                    "message": "Required fields `auth_code` and `telegram_id` weren't provided."
+                },
+                status=400
+            )
+
+        spreadsheet_auth = self.request.app["spreadsheet_auth"]
+        spreadsheet_credentials, status = await spreadsheet_auth.fetch_credentials(auth_code)
+        if status != 200:
+            return web.json_response(
+                data={
+                    "success": False,
+                    "message": "The `auth_code` isn't correct."
+                },
+                status=400
+            )
+
+        user = self.request.app["user"]
+        updated = await user.update_spreadsheet_token(
+            telegram_id,
+            spreadsheet_credentials["refresh_token"]
+        )
+        if not updated:
+            return web.json_response(
+                data={
+                    "success": False,
+                    "message": "The spreadsheet token wasn't created. Something went wrong. Try again, please."
+                },
+                status=400
+            )
+
+        return web.json_response(data={"success": True}, status=200)

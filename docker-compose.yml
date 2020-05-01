@@ -27,6 +27,8 @@ services:
     container_name: sws_collector
     build: ./collector
     command: python /collector/app/main.py
+    stdin_open: true
+    tty: true
     env_file:
       - .env
     volumes:
@@ -42,6 +44,8 @@ services:
     container_name: sws_server
     build: ./server
     command: python /server/app/main.py
+    stdin_open: true
+    tty: true
     env_file:
       - .env
     volumes:
@@ -57,6 +61,8 @@ services:
     container_name: sws_telegram
     build: ./telegram
     command: python /telegram/app/main.py
+    stdin_open: true
+    tty: true
     env_file:
       - .env
     volumes:
