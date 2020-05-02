@@ -9,41 +9,6 @@
     ```shell script
     docker-compose up
     ```
-### Installing [manual]
-1. Create `.env` file in the root of the project with the variables provided in [.env](#environment-variables).
-2. Run command to establish environment variables:
-    ```shell script
-    source .env
-    ```
-3. Install redis:
-    ```shell script
-    sudo apt-get install redis-server
-
-    # check redis connections
-    redis-cli ping
-    PONG
-    ```
-4. Install postgres:
-    ```shell script
-    sudo apt install postgresql postgresql-contrib
-    ```
-5. Create user and database:
-    ```shell script
-    sudo -u postgres psql
-    postgres=# CREATE USER ${POSTGRES_USER} PASSWORD ${POSTGRES_PASSWORD};
-    postgres=# CREATE DATABASE ${POSTGRES_DATABASE} OWNER ${POSTGRES_USER};
-    postgres=# SET TIME ZONE 'Europe/Kiev';
-    ```
-6. Initialize database:
-    ```shell script
-    cd ./postgres
-    psql -U ${POSTGRES_USER} -d ${POSTGRES_DATABASE} -a -f createdb.sql
-    ```
-7. Install project dependencies:
-    ```shell script
-    pip install -r ./requirements.txt
-    pip install -r ./collector/requirements.txt
-    ```
 
 ### Commands
 * Agnostic [[Reference]](https://agnostic.readthedocs.io/en/stable/cli.html#command-line)

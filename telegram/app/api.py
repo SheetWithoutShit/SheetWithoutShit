@@ -30,9 +30,17 @@ class API:
         return response.json()
 
     def register_spreadsheet(self, telegram_id, auth_code):
-        """Get request in order to retrieve spreadsheet auth url."""
+        """Send auth_code in order to get user`s spreadsheet credentials."""
         endpoint = f"{self.domain}/spreadsheet"
         data = json.dumps({"telegram_id": telegram_id, "auth_code": auth_code})
+        response = self.session.post(endpoint, data=data)
+
+        return response.json()
+
+    def register_monobank(self, telegram_id, token):
+        """Send token in order to get access to user`s monobank account."""
+        endpoint = f"{self.domain}/monobank"
+        data = json.dumps({"telegram_id": telegram_id, "token": token})
         response = self.session.post(endpoint, data=data)
 
         return response.json()
