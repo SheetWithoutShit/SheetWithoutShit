@@ -11,6 +11,7 @@ from core.database.redis import PoolManager as RedisPoolManager
 from views import routes
 from user import User
 from spreadsheet import SpreadsheetAuth
+from middlewares import check_auth
 
 
 LOG = logging.getLogger("")
@@ -60,6 +61,7 @@ def main():
     init_logging()
     app.add_routes(routes)
     app.cleanup_ctx.append(init_clients)
+    app.middlewares.append(check_auth)
 
     run_app(
         app,
