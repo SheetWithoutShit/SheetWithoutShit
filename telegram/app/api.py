@@ -10,7 +10,7 @@ class API:
     def __init__(self, domain, bot_token):
         """Initialize API instance for further work with server API."""
         session = requests.Session()
-        session.headers.update({"Auth": bot_token})
+        session.headers.update({"Authorization": bot_token})
         self.session = session
         self.domain = f"http://{domain}"
 
