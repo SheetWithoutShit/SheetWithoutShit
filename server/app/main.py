@@ -3,6 +3,7 @@
 import os
 import asyncio
 import logging
+import requests
 
 from aiohttp.web import Application, run_app
 from core.database.postgres import PoolManager as PGPoolManager
@@ -12,6 +13,7 @@ from views import routes
 from user import User
 from spreadsheet import SpreadsheetAuth
 from middlewares import check_auth
+from monobank import MonoBankAPI
 
 
 LOG = logging.getLogger("")
@@ -35,6 +37,7 @@ def init_logging():
 async def init_clients(app):
     """Initialize application with clients."""
     app["spreadsheet_auth"] = spreadsheet_auth = SpreadsheetAuth()
+    app["monobank"] = monobank = MonoBankAPI()
     app["postgres"] = postgres = await PGPoolManager.create()
     app["redis"] = redis = await RedisPoolManager.create()
 
@@ -45,10 +48,21 @@ async def init_clients(app):
 
     await asyncio.gather(
         spreadsheet_auth.close(),
+        monobank.close(),
         postgres.close(),
         redis.close()
     )
     LOG.debug("Clients has successfully closed.")
+
+
+def init_ngrok_env():
+    """Set ngrok forwarding domain as env variable."""
+    response = requests.get("http://ngrok:4040/api/tunnels").json()
+    _, http = response["tunnels"]
+    public_url = http["public_url"]
+    os.environ["NGROK_DOMAIN"] = public_url
+
+    LOG.info("NGROK forwarding to: %s", public_url)
 
 
 def main():
@@ -57,8 +71,9 @@ def main():
     port = os.environ.get("SERVER_PORT", 5000)
 
     app = Application()
-
     init_logging()
+    init_ngrok_env()
+
     app.add_routes(routes)
     app.cleanup_ctx.append(init_clients)
     app.middlewares.append(check_auth)

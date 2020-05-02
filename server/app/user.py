@@ -19,6 +19,12 @@ UPDATE_SPREADSHEET_REFRESH_TOKEN = """
      WHERE telegram_id=$1
 """
 
+UPDATE_MONOBANK_TOKEN = """
+    UPDATE "USER"
+       SET monobank_token=$2
+     WHERE telegram_id=$1
+"""
+
 
 class User:
     """Model that provides methods to work with user`s data."""
@@ -54,3 +60,14 @@ class User:
             )
         except exceptions.PostgresError as err:
             LOG.error("Could not update user=%s spreadsheet token. Error: %s", telegram_id, err.message)
+
+    async def update_monobank_token(self, telegram_id, token):
+        """Update user`s monobank token."""
+        try:
+            return await self._postgres.execute(
+                UPDATE_MONOBANK_TOKEN,
+                telegram_id,
+                token
+            )
+        except exceptions.PostgresError as err:
+            LOG.error("Could not update user=%s monobank token. Error: %s", telegram_id, err.message)

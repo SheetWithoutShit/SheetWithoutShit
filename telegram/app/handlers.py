@@ -47,3 +47,25 @@ def handle_spreadsheet_registration(request):
         return
 
     bot.send_message(request.chat.id, text=messages.SPREADSHEET_AUTH_SUCCESS)
+
+
+@bot.message_handler(commands=["monobank"])
+def handle_monobank_command(request):
+    """Send steps to get access to user`s monobank account."""
+    message = bot.send_message(
+        request.chat.id,
+        text=messages.MONOBANK_AUTH,
+        parse_mode="markdown"
+    )
+    bot.register_next_step_handler(message, handle_monobank_registration)
+
+
+def handle_monobank_registration(request):
+    """Handle step for activating user`s monobank account."""
+    token = request.text.strip()
+    response = bot.api.register_monobank(request.chat.id, token)
+    if not response.get("success"):
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
+
+    bot.send_message(request.chat.id, text=messages.MONOBANK_AUTH_SUCCESS)

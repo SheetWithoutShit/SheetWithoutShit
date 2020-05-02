@@ -1,5 +1,6 @@
 """This module provides views for server app."""
 
+import asyncio
 from aiohttp import web
 
 
@@ -97,6 +98,40 @@ class SpreadsheetView(web.View):
                     "success": False,
                     "message": "The spreadsheet token wasn't created. Something went wrong. Try again, please."
                 },
+                status=400
+            )
+
+        return web.json_response(data={"success": True}, status=200)
+
+
+@routes.view('/monobank')
+class MonobankView(web.View):
+    """View to interact with monobank data."""
+
+    async def post(self):
+        """Update user`s monobank access token."""
+        data = await self.request.json()
+
+        telegram_id, token = data.get("telegram_id"), data.get("token")
+        if not token or not telegram_id:
+            return web.json_response(
+                data={
+                    "success": False,
+                    "message": "Required fields `token` and `telegram_id` weren't provided."
+                },
+                status=400
+            )
+
+        monobank, user = self.request.app["monobank"], self.request.app["user"]
+        webhook_response, token_updated = await asyncio.gather(
+            monobank.set_webhook(telegram_id, token),
+            user.update_monobank_token(telegram_id, token)
+        )
+        # TODO: spawn background task to get user info
+        _, status = webhook_response
+        if status != 200 or not token_updated:
+            return web.json_response(
+                data={"message": "The `token` isn't correct."},
                 status=400
             )
 

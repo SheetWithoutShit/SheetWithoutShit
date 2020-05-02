@@ -25,6 +25,8 @@ def init_logging():
 def main():
     """Create telegram bot and run it."""
     init_logging()
+
+    LOG.info("Telegram bot was successfully initialized.")
     bot.polling(none_stop=True, interval=1)
 
 
