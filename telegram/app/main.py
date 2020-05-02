@@ -3,14 +3,10 @@
 import os
 import logging
 
-from telebot import TeleBot
-
-import messages
-
+from handlers import bot
 
 LOG = logging.getLogger("")
 LOG_FORMAT = "%(asctime)s - %(levelname)s: %(name)s: %(message)s"
-BOT = TeleBot(os.environ["TELEGRAM_BOT_TOKEN"])
 
 
 def init_logging():
@@ -26,22 +22,10 @@ def init_logging():
         logging.getLogger("").addHandler(file_handler)
 
 
-@BOT.message_handler(commands=['help'])
-def handle_help_command(message):
-    """Send help information to user."""
-    BOT.send_message(message.from_user.id, messages.HELP_TEXT)
-
-
-@BOT.message_handler(commands=['start'])
-def handle_start_command(message):
-    """Send start steps to user."""
-    BOT.send_message(message.from_user.id, messages.START_TEXT)
-
-
 def main():
     """Create telegram bot and run it."""
     init_logging()
-    BOT.polling(none_stop=True, interval=1)
+    bot.polling(none_stop=True, interval=1)
 
 
 if __name__ == '__main__':

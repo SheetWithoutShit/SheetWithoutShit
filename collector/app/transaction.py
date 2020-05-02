@@ -53,4 +53,4 @@ class Transaction:
         try:
             await self._postgres.execute(INSERT_TRANSACTION, *query_args)
         except exceptions.PostgresError as err:
-            LOG.error("Could not insert transaction for user=%s: %s. Error: %s", user_id, transaction, err)
+            LOG.error("Could not insert transaction for user=%s: %s. Error: %s", user_id, transaction, err.message)

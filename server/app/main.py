@@ -9,6 +9,7 @@ from core.database.postgres import PoolManager as PGPoolManager
 from core.database.redis import PoolManager as RedisPoolManager
 
 from views import routes
+from user import User
 
 
 LOG = logging.getLogger("")
@@ -34,6 +35,7 @@ async def init_clients(app):
     app["postgres"] = postgres = await PGPoolManager.create()
     app["redis"] = redis = await RedisPoolManager.create()
 
+    app["user"] = User(postgres=postgres, redis=redis)
     LOG.debug("Clients has successfully initialized.")
 
     yield
