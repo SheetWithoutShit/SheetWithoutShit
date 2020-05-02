@@ -10,6 +10,7 @@ from core.database.redis import PoolManager as RedisPoolManager
 
 from views import routes
 from user import User
+from spreadsheet import SpreadsheetAuth
 
 
 LOG = logging.getLogger("")
@@ -32,6 +33,7 @@ def init_logging():
 
 async def init_clients(app):
     """Initialize application with clients."""
+    app["spreadsheet_auth"] = spreadsheet_auth = SpreadsheetAuth()
     app["postgres"] = postgres = await PGPoolManager.create()
     app["redis"] = redis = await RedisPoolManager.create()
 
@@ -41,6 +43,7 @@ async def init_clients(app):
     yield
 
     await asyncio.gather(
+        spreadsheet_auth.close(),
         postgres.close(),
         redis.close()
     )
