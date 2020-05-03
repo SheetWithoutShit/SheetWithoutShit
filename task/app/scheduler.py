@@ -5,6 +5,10 @@ import asyncio
 
 import aiojobs
 
+from core.http import HTTPRequest
+from core.database.postgres import PoolManager as PGPoolManager
+from core.database.redis import PoolManager as RedisPoolManager
+
 
 LOG = logging.getLogger(__name__)
 DEFAULT_SLEEP_TIME = 5
@@ -29,6 +33,7 @@ class TaskScheduler:
         self.pid = None
         self.scheduler = None
         self.tasks = None
+        self.pools = None
 
     @classmethod
     async def create(cls, pid, tasks, limit, pending_limit):
@@ -40,9 +45,15 @@ class TaskScheduler:
             exception_handler=_exception_handler,
         )
         setattr(scheduler, "pid", pid)
+        pools = {
+            "postgres": await PGPoolManager.create(),
+            "redis": await RedisPoolManager.create(),
+            "http": HTTPRequest()
+        }
 
         instance.scheduler = scheduler
         instance.tasks = tasks
+        instance.pools = pools
 
         return instance
 
@@ -53,7 +64,7 @@ class TaskScheduler:
             LOG.error("Task <%s> is not registered", task_name)
             return
 
-        await task(**kwargs)
+        await task(self.pools, **kwargs)
 
     async def close(self):
         """
