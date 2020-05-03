@@ -18,12 +18,38 @@ def handle_help_command(request):
 def handle_start_command(request):
     """Send start steps to user."""
     user = {
-        "telegram_id": request.chat.id,
         "first_name": request.from_user.first_name,
         "last_name": request.from_user.last_name
     }
-    bot.api.register_user(user)
+    response = bot.api.register_user(request.chat.id, user)
+    if not response.get("success"):
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
+
     bot.send_message(request.chat.id, messages.START_TEXT)
+
+
+@bot.message_handler(commands=["me"])
+def handle_me_command(request):
+    """Send all information about user."""
+    response = bot.api.get_user(request.chat.id)
+    if not response.get("success"):
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
+
+    user = response["user"]
+    first_name = user["first_name"] or "Невідомець"
+    last_name = user["last_name"] or ""
+    spreadsheet = messages.CHECK_MARK if user["spreadsheet_refresh_token"] else messages.CROSS_MARK
+    monobank = messages.CHECK_MARK if user["monobank_token"] else messages.CROSS_MARK
+
+    text = messages.USER_INFO.format(
+        first_name=first_name,
+        last_name=last_name,
+        spreadsheet=spreadsheet,
+        monobank=monobank
+    )
+    bot.send_message(request.chat.id, text=text)
 
 
 @bot.message_handler(commands=["spreadsheet"])

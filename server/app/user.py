@@ -13,6 +13,11 @@ CREATE_USER = """
          VALUES ($1, $2, $3);
 """
 
+GET_USER = """
+    SELECT * FROM "USER"
+     WHERE telegram_id=$1
+"""
+
 UPDATE_SPREADSHEET_REFRESH_TOKEN = """
     UPDATE "USER"
        SET spreadsheet_refresh_token=$2
@@ -34,21 +39,28 @@ class User:
         self._postgres = postgres
         self._redis = redis
 
-    async def create_user(self, user):
+    async def create_user(self, telegram_id, user):
         """Create new user in database."""
-        telegram_id = user["telegram_id"]
         first_name = user.get("first_name")
         last_name = user.get("last_name")
 
         try:
             return await self._postgres.execute(
                 CREATE_USER,
-                telegram_id,
+                int(telegram_id),
                 first_name,
                 last_name
             )
-        except exceptions.PostgresError as err:
-            LOG.error("Could not create user=%s. Error: %s", telegram_id, err.message)
+        except (exceptions.PostgresError, ValueError) as err:
+            LOG.error("Couldn't create user=%s. Error: %s", telegram_id, err.message)
+
+    async def get_user(self, telegram_id):
+        """Retrieve user from database by `telegram_id`."""
+        try:
+            record = await self._postgres.fetchone(GET_USER, int(telegram_id))
+            return {k: v for k, v in record.items()}  # pylint: disable=unnecessary-comprehension
+        except (exceptions.PostgresError, ValueError) as err:
+            LOG.error("Couldn't retrieve user=%s. Error: %s", telegram_id, err.message)
 
     async def update_spreadsheet_token(self, telegram_id, refresh_token):
         """Update user`s spreadsheet refresh token."""
