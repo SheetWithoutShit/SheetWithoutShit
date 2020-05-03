@@ -1,6 +1,7 @@
 """This module provides functionality for Redis subscribing."""
 
 import os
+import json
 import logging
 
 import aioredis
@@ -9,10 +10,10 @@ import aioredis
 LOG = logging.getLogger(__name__)
 
 
-class RedisSubscriber:
+class TaskReader:
     """Class that provides subscriber`s functionality."""
 
-    stop_word = "STOP ME!"
+    stop_task = "STOP ME!"
 
     def __init__(self):
         """Initialize redis connection instance with env configs."""
@@ -38,6 +39,12 @@ class RedisSubscriber:
 
         return instance
 
+    @staticmethod
+    def parse_task_info(message):
+        """Return parsed information about task."""
+        task = json.loads(message)
+        return task["name"], task["kwargs"]
+
     async def subscribe(self, channel_name):
         """Subscribe to provided channel."""
         self.channel, *_ = await self.redis.subscribe(channel_name)
@@ -53,10 +60,11 @@ class RedisSubscriber:
     async def read(self, scheduler):
         """Infinity reading messages from redis broker and spawning tasks."""
         while await self.channel.wait_message():
-            task = await self.channel.get(encoding="utf-8")
-            LOG.info("%s. Channel: <%s>. Task: %s", self.pid, self.channel_name, task)
+            message = await self.channel.get(encoding="utf-8")
+            LOG.info("%s. Channel: <%s>. Received task: %s", self.pid, self.channel_name, message)
 
-            if task == self.stop_word:
+            task, kwargs = TaskReader.parse_task_info(message)
+            if task == self.stop_task:
                 return
 
-            await scheduler.spawn(task)
+            await scheduler.spawn(task, kwargs)

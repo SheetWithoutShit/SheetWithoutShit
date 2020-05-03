@@ -84,5 +84,20 @@ services:
       - redis
       - server
 
+  # TODO: find out way for scaling
+  tasker:
+    container_name: sws_tasker
+    build: ./task
+    command: python /task/app/main.py --name task
+    stdin_open: true
+    tty: true
+    env_file:
+      - .env
+    volumes:
+      - ./task:/task
+      - /var/log/sws/task.log:/var/log/sws/task.log
+    depends_on:
+      - redis
+
 volumes:
   postgres-data:

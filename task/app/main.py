@@ -5,7 +5,8 @@ import argparse
 import asyncio
 import logging
 
-from subscriber import RedisSubscriber
+import tasks
+from subscriber import TaskReader
 from scheduler import TaskScheduler
 
 
@@ -30,18 +31,18 @@ async def main(channel_name, limit, pending_limit):
     """Initialize redis subscriber and run it."""
     pid = os.getpid()
 
-    subscriber = await RedisSubscriber.create(pid)
-    scheduler = await TaskScheduler.create(pid, limit, pending_limit)
+    reader = await TaskReader.create(pid)
+    scheduler = await TaskScheduler.create(pid, tasks, limit, pending_limit)
 
-    await subscriber.subscribe(channel_name)
-    LOG.info("TaskManager=%s reading channel: <%s>", pid, subscriber.channel_name)
+    await reader.subscribe(channel_name)
+    LOG.info("TaskManager=%s reading channel: <%s>", pid, reader.channel_name)
 
-    await subscriber.read(scheduler)
+    await reader.read(scheduler)
 
-    await subscriber.close()
+    await reader.close()
     await scheduler.close()
 
-    LOG.info("TaskManager=%s is closed.", pid)
+    LOG.info("TaskManager=%s was closed.", pid)
 
 
 if __name__ == '__main__':
