@@ -28,9 +28,10 @@ class TaskScheduler:
         """Initialize task scheduler instance."""
         self.pid = None
         self.scheduler = None
+        self.tasks = None
 
     @classmethod
-    async def create(cls, pid, limit, pending_limit):
+    async def create(cls, pid, tasks, limit, pending_limit):
         """Create task scheduler instance."""
         instance = cls()
         scheduler = await aiojobs.create_scheduler(
@@ -39,13 +40,20 @@ class TaskScheduler:
             exception_handler=_exception_handler,
         )
         setattr(scheduler, "pid", pid)
+
         instance.scheduler = scheduler
+        instance.tasks = tasks
 
         return instance
 
-    async def spawn(self, task_name):
+    async def spawn(self, task_name, kwargs):
         """Spawn task with provided args/kwargs if available."""
-        # TODO
+        task = getattr(self.tasks, task_name, None)
+        if not task:
+            LOG.error("Task <%s> is not registered", task_name)
+            return
+
+        await task(**kwargs)
 
     async def close(self):
         """
