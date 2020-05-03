@@ -14,6 +14,7 @@ class TaskReader:
     """Class that provides subscriber`s functionality."""
 
     stop_task = "STOP ME!"
+    ping_task = "PING!"
 
     def __init__(self):
         """Initialize redis connection instance with env configs."""
@@ -43,7 +44,7 @@ class TaskReader:
     def parse_task_info(message):
         """Return parsed information about task."""
         task = json.loads(message)
-        return task["name"], task["kwargs"]
+        return task["name"], task.get("kwargs", {})
 
     async def subscribe(self, channel_name):
         """Subscribe to provided channel."""
@@ -61,10 +62,19 @@ class TaskReader:
         """Infinity reading messages from redis broker and spawning tasks."""
         while await self.channel.wait_message():
             message = await self.channel.get(encoding="utf-8")
-            LOG.info("%s. Channel: <%s>. Received task: %s", self.pid, self.channel_name, message)
 
-            task, kwargs = TaskReader.parse_task_info(message)
+            try:
+                task, kwargs = TaskReader.parse_task_info(message)
+            except (json.JSONDecodeError, KeyError) as err:
+                LOG.error("%s. Received invalid task: %s. Error: ", self.pid, err.message)
+                continue
+
+            if task == self.ping_task:
+                LOG.info("%s. Someone annoying me with the message: %s", self.pid, message)
+                continue
             if task == self.stop_task:
+                LOG.info("%s. Received stop task. Starting self-destruction.", self.pid)
                 return
 
+            LOG.info("%s. Received task: %s", self.pid, message)
             await scheduler.spawn(task, kwargs)

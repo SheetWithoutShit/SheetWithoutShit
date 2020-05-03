@@ -19,14 +19,6 @@ class MonoBankAPI(HTTPRequest):
             "X-Token": token
         }
 
-    async def get_user_info(self, token):
-        """Retrieve user's data by his token from monobank API."""
-        user_info_url = f"{MONOBANK_API}/personal/client-info"
-        headers = MonoBankAPI.format_headers(token)
-        response = await self.get(url=user_info_url, headers=headers)
-
-        return response
-
     @aioshield
     async def set_webhook(self, user_id, token):
         """

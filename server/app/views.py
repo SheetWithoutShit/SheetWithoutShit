@@ -127,12 +127,16 @@ class MonobankView(web.View):
             monobank.set_webhook(telegram_id, token),
             user.update_monobank_token(telegram_id, token)
         )
-        # TODO: spawn background task to get user info
+
         _, status = webhook_response
         if status != 200 or not token_updated:
             return web.json_response(
                 data={"message": "The `token` isn't correct."},
                 status=400
             )
+
+        redis = self.request.app["redis"]
+        task_kwargs = {"telegram_id": telegram_id, "token": token}
+        await redis.publish("task", {"name": "save_user_monobank_info", "kwargs": task_kwargs})
 
         return web.json_response(data={"success": True}, status=200)
