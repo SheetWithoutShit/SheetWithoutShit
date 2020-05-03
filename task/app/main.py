@@ -6,6 +6,7 @@ import asyncio
 import logging
 
 from subscriber import RedisSubscriber
+from scheduler import TaskScheduler
 
 
 LOG = logging.getLogger("")
@@ -25,23 +26,33 @@ def init_logging():
         logging.getLogger("").addHandler(file_handler)
 
 
-async def main(channel_name):
+async def main(channel_name, limit, pending_limit):
     """Initialize redis subscriber and run it."""
-    subscriber = await RedisSubscriber.create()
+    pid = os.getpid()
+
+    subscriber = await RedisSubscriber.create(pid)
+    scheduler = await TaskScheduler.create(pid, limit, pending_limit)
+
     await subscriber.subscribe(channel_name)
-    LOG.info("Subscriber=%s reading channel: <%s>", subscriber.pid, subscriber.channel_name)
+    LOG.info("TaskManager=%s reading channel: <%s>", pid, subscriber.channel_name)
 
-    await subscriber.read()
+    await subscriber.read(scheduler)
+
     await subscriber.close()
+    await scheduler.close()
 
-    LOG.info("Subscriber=%s gracefully closed.", subscriber.pid)
+    LOG.info("TaskManager=%s is closed.", pid)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", dest="channel_name", required=True, help="Name of channel for subscribing.")
+    parser.add_argument("--tasks-limit", dest="limit", help="Limit tasks spawned by scheduler.")
+    parser.add_argument("--pending-limit", dest="pending_limit", default=0, help="Limit pending tasks.")
     args = parser.parse_args()
 
     init_logging()
 
-    asyncio.run(main(args.channel_name))
+    asyncio.run(
+        main(args.channel_name, args.limit, args.pending_limit)
+    )
