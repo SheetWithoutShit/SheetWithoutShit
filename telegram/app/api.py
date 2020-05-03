@@ -14,11 +14,18 @@ class API:
         self.session = session
         self.domain = f"http://{domain}"
 
-    def register_user(self, user):
+    def register_user(self, telegram_id, user):
         """Send request in order to create a new user."""
-        endpoint = f"{self.domain}/user"
+        endpoint = f"{self.domain}/user/{telegram_id}"
         user_json = json.dumps(user)
         response = self.session.post(endpoint, data=user_json)
+
+        return response.json()
+
+    def get_user(self, telegram_id):
+        """Get request in order to retrieve user information."""
+        endpoint = f"{self.domain}/user/{telegram_id}"
+        response = self.session.get(endpoint)
 
         return response.json()
 

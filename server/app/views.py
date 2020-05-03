@@ -7,25 +7,40 @@ from aiohttp import web
 routes = web.RouteTableDef()
 
 
-@routes.view('/user')
+@routes.view(r"/user/{telegram_id}")
 class UserView(web.View):
     """Views to interact with user`s data."""
 
-    async def post(self):
-        """Create new user in database."""
-        data = await self.request.json()
+    async def get(self):
+        """Retrieve user from database."""
+        telegram_id = self.request.match_info["telegram_id"]
         user = self.request.app["user"]
 
-        if not data.get("telegram_id"):
+        user_info = await user.get_user(telegram_id)
+        if not user_info:
             return web.json_response(
                 data={
                     "success": False,
-                    "message": "The field `telegram_id` wasn't provided."
+                    "message": "Couldn't retrieve user. Something went wrong. Try again, please."
                 },
                 status=400
             )
 
-        created = await user.create_user(data)
+        return web.json_response(
+            data={
+                "success": True,
+                "user": user_info
+            },
+            status=200
+        )
+
+    async def post(self):
+        """Create new user in database."""
+        telegram_id = self.request.match_info["telegram_id"]
+        data = await self.request.json()
+        user = self.request.app["user"]
+
+        created = await user.create_user(telegram_id, data)
         if not created:
             return web.json_response(
                 data={

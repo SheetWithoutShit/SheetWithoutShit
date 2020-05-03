@@ -1,5 +1,8 @@
 """This module provides texts for bot messages."""
 
+CROSS_MARK = "✖️"
+CHECK_MARK = "✔️"
+
 HELP_TEXT = \
     "Sheet Without Shit - помічник з питань бюджету 💲." \
     "\n\nЯ створений для того, щоб заощадити Ваші кошти." \
@@ -24,6 +27,11 @@ START_TEXT = \
     "\n\t▪ MonoBank (/monobank)." \
     "\n\t▪ Google Spreadsheet (/spreadsheet)." \
     "\n\nДля детальнішої інформації звертайтесь до команди /help."
+
+USER_INFO = \
+    "Вітаю, {first_name} {last_name}! 💲\n\n" \
+    "{monobank} - Наданий доступ до MonoBank`y. (/monobank)\n" \
+    "{spreadsheet} - Наданий доступ до Google Spreadsheet. (/spreadsheet)"
 
 SPREADSHEET_AUTH = \
     "Щоб я зміг створити електрону таблицю, вам потрібно перейти за [посиланням]({auth_url})" \
