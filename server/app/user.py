@@ -54,12 +54,12 @@ class User:
         except (exceptions.PostgresError, ValueError) as err:
             LOG.error("Couldn't create user=%s. Error: %s", telegram_id, err.message)
 
-    async def get_user(self, telegram_id):
+    async def retrieve_user(self, telegram_id):
         """Retrieve user from database by `telegram_id`."""
         try:
-            record = await self._postgres.fetchone(GET_USER, int(telegram_id))
-            return {k: v for k, v in record.items()}  # pylint: disable=unnecessary-comprehension
-        except (exceptions.PostgresError, ValueError) as err:
+            record = await self._postgres.fetchone(GET_USER, telegram_id)
+            return dict(record.items())
+        except (exceptions.PostgresError, AttributeError) as err:
             LOG.error("Couldn't retrieve user=%s. Error: %s", telegram_id, err.message)
 
     async def update_spreadsheet_token(self, telegram_id, refresh_token):

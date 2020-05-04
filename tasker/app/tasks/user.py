@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 
 UPDATE_USER_NAME = """
     UPDATE "USER"
-       SET first_name=$2, last_name=$3
+       SET first_name=$2, last_name=$3, monobank_token=$4
      WHERE telegram_id=$1
 """
 
@@ -25,7 +25,7 @@ async def save_user_monobank_info(pools, telegram_id, token):
     http, postgres = pools["http"], pools["postgres"]
     response, status = await http.get(url=endpoint, headers=headers)
     if status != 200:
-        LOG.warning("Couldn't retrieve user`s=%s data from monobank. Error: %s", telegram_id, response)
+        LOG.error("Couldn't retrieve user`s=%s data from monobank. Error: %s", telegram_id, response)
         return
 
     last_name, first_name = response.get("name", "").split(" ")
@@ -34,7 +34,8 @@ async def save_user_monobank_info(pools, telegram_id, token):
             UPDATE_USER_NAME,
             telegram_id,
             first_name,
-            last_name
+            last_name,
+            token
         )
     except exceptions.PostgresError as err:
         LOG.error("Could not update user=%s name. Error: %s", telegram_id, err.message)

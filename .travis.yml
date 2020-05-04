@@ -6,7 +6,7 @@ before_install:
 - pip install -r collector/requirements.txt
 - pip install -r telegram/requirements.txt
 - pip install -r server/requirements.txt
-- pip install -r task/requirements.txt
+- pip install -r tasker/requirements.txt
 - pip install -r requirements.txt
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
       - pylint --rcfile=.pylintrc ./collector/app/ --init-hook='sys.path.extend(["./collector/app/"])'
       - pylint --rcfile=.pylintrc ./telegram/app/ --init-hook='sys.path.extend(["./telegram/app/"])'
       - pylint --rcfile=.pylintrc ./server/app/ --init-hook='sys.path.extend(["./server/app/"])'
-      - pylint --rcfile=.pylintrc ./task/app/ --init-hook='sys.path.extend(["./task/app/"])'
+      - pylint --rcfile=.pylintrc ./tasker/app/ --init-hook='sys.path.extend(["./tasker/app/"])'
 
 branches:
   only:

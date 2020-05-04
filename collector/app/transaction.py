@@ -38,7 +38,7 @@ class Transaction:
         return code
 
     async def save_transaction(self, user_id, transaction):
-        """Insert transaction element to postgres."""
+        """Insert transaction element to postgres initially formatting it."""
         mcc = await self._get_mcc(transaction["mcc"])
         user_id = int(user_id)
         timestamp = datetime.fromtimestamp(transaction["timestamp"])

@@ -60,6 +60,8 @@ class TaskReader:
 
     async def read(self, scheduler):
         """Infinity reading messages from redis broker and spawning tasks."""
+        LOG.debug("%s. Start reading tasks from channel: <%s>", self.pid, self.channel_name)
+
         while await self.channel.wait_message():
             message = await self.channel.get(encoding="utf-8")
 

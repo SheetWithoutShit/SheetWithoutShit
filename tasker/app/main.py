@@ -15,7 +15,10 @@ LOG_FORMAT = "%(asctime)s - %(levelname)s: %(name)s: %(message)s"
 
 
 def init_logging():
-    """Initialize stream and file logger if it is available."""
+    """
+    Initialize logging stream with debug level to console and
+    create file logger with info level if permission to file allowed.
+    """
     logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
 
     log_dir = os.environ.get("LOG_DIR")
@@ -23,26 +26,29 @@ def init_logging():
     if log_dir and os.path.isfile(log_filepath) and os.access(log_filepath, os.W_OK):
         formatter = logging.Formatter(LOG_FORMAT)
         file_handler = logging.FileHandler(log_filepath)
+        file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
         logging.getLogger("").addHandler(file_handler)
 
 
 async def main(channel_name, limit, pending_limit):
-    """Initialize redis subscriber and run it."""
+    """
+    Initialize tasker application with required entities.
+        * redis subscriber (TaskReader)
+        * task executor (TaskScheduler)
+    """
     pid = os.getpid()
 
     reader = await TaskReader.create(pid)
     scheduler = await TaskScheduler.create(pid, tasks, limit, pending_limit)
 
     await reader.subscribe(channel_name)
-    LOG.info("TaskManager=%s reading channel: <%s>", pid, reader.channel_name)
-
     await reader.read(scheduler)
 
     await reader.close()
     await scheduler.close()
 
-    LOG.info("TaskManager=%s was closed.", pid)
+    LOG.debug("Tasker %s has successfully closed.", pid)
 
 
 if __name__ == '__main__':
