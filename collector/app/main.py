@@ -10,7 +10,6 @@ from core.database.redis import PoolManager as RedisPoolManager
 
 from views import routes
 from transaction import Transaction, SELECT_MCC_CODES
-from spreadsheet import SpreadsheetAPI, SpreadsheetAuth
 
 
 LOG = logging.getLogger("")
@@ -19,22 +18,29 @@ ACCESS_LOG_FORMAT = "%a [VIEW: %r] [RESPONSE: %s (%bb)] [TIME: %Dms]"
 
 
 def init_logging():
-    """Initialize stream and file logger if it is available."""
+    """
+    Initialize logging stream with debug level to console and
+    create file logger with info level if permission to file allowed.
+    """
     logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
 
     log_dir = os.environ.get("LOG_DIR")
     log_filepath = f'{log_dir}/collector.log'
-    if log_dir and os.path.exists(log_filepath) and os.access(log_filepath, os.W_OK):
+    if log_dir and os.path.isfile(log_filepath) and os.access(log_filepath, os.W_OK):
         formatter = logging.Formatter(LOG_FORMAT)
         file_handler = logging.FileHandler(log_filepath)
+        file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
         logging.getLogger("").addHandler(file_handler)
 
 
 async def prepare_data(app):
-    """Prepare required data for correct application work."""
+    """
+    Prepare required data for correct application work.
+        * Store mcc codes retrieved from postgres to redis.
+    """
     postgres, redis = app["postgres"], app["redis"]
-    codes = [x.get('code') for x in await postgres.fetch(SELECT_MCC_CODES)]
+    codes = [x["code"] for x in await postgres.fetch(SELECT_MCC_CODES)]
     await redis.dump("mcc", codes)
     LOG.debug("Data was successfully prepared.")
 
@@ -45,9 +51,12 @@ async def prepare_data(app):
 
 
 async def init_clients(app):
-    """Initialize application with clients."""
-    app["spreadsheet_api"] = spreadsheet_api = SpreadsheetAPI()
-    app["spreadsheet_auth"] = spreadsheet_auth = SpreadsheetAuth()
+    """
+    Initialize aiohttp application with clients.
+        * redis pool manager
+        * postgres pool manager
+        * transaction model
+    """
     app["postgres"] = postgres = await PGPoolManager.create()
     app["redis"] = redis = await RedisPoolManager.create()
 
@@ -57,8 +66,6 @@ async def init_clients(app):
     yield
 
     await asyncio.gather(
-        spreadsheet_api.close(),
-        spreadsheet_auth.close(),
         postgres.close(),
         redis.close()
     )

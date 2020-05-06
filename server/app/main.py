@@ -22,7 +22,10 @@ ACCESS_LOG_FORMAT = "%a [VIEW: %r] [RESPONSE: %s (%bb)] [TIME: %Dms]"
 
 
 def init_logging():
-    """Initialize stream and file logger if it is available."""
+    """
+    Initialize logging stream with debug level to console and
+    create file logger with info level if permission to file allowed.
+    """
     logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
 
     log_dir = os.environ.get("LOG_DIR")
@@ -30,12 +33,20 @@ def init_logging():
     if log_dir and os.path.isfile(log_filepath) and os.access(log_filepath, os.W_OK):
         formatter = logging.Formatter(LOG_FORMAT)
         file_handler = logging.FileHandler(log_filepath)
+        file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
         logging.getLogger("").addHandler(file_handler)
 
 
 async def init_clients(app):
-    """Initialize application with clients."""
+    """
+    Initialize aiohttp application with clients.
+        * redis pool manager
+        * postgres pool manager
+        * user model
+        * spreadsheet auth http client
+        * monobank api http client
+    """
     app["spreadsheet_auth"] = spreadsheet_auth = SpreadsheetAuth()
     app["monobank"] = monobank = MonoBankAPI()
     app["postgres"] = postgres = await PGPoolManager.create()
@@ -55,14 +66,17 @@ async def init_clients(app):
     LOG.debug("Clients has successfully closed.")
 
 
-def init_ngrok_env():
-    """Set ngrok forwarding domain as env variable."""
+async def init_constants(app):
+    """Initialize aiohttp application with required constants."""
+    app["constants"] = constants = {}
+
     response = requests.get("http://ngrok:4040/api/tunnels").json()
     _, http = response["tunnels"]
-    public_url = http["public_url"]
-    os.environ["NGROK_DOMAIN"] = public_url
+    ngrok_domain = http["public_url"]
+    LOG.debug("NGROK forwarding to: %s", ngrok_domain)
 
-    LOG.info("NGROK forwarding to: %s", public_url)
+    constants["NGROK_DOMAIN"] = os.environ["NGROK_DOMAIN"] = ngrok_domain
+    constants["TELEGRAM_TOKEN"] = os.environ["TELEGRAM_BOT_TOKEN"]
 
 
 def main():
@@ -72,10 +86,10 @@ def main():
 
     app = Application()
     init_logging()
-    init_ngrok_env()
 
     app.add_routes(routes)
     app.cleanup_ctx.append(init_clients)
+    app.on_startup.append(init_constants)
     app.middlewares.append(check_auth)
 
     run_app(

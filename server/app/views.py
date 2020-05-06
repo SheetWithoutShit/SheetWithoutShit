@@ -1,22 +1,21 @@
 """This module provides views for server app."""
 
-import asyncio
 from aiohttp import web
 
 
 routes = web.RouteTableDef()
 
 
-@routes.view(r"/user/{telegram_id}")
+@routes.view(r"/user/{telegram_id:\d+}")
 class UserView(web.View):
     """Views to interact with user`s data."""
 
     async def get(self):
         """Retrieve user from database."""
-        telegram_id = self.request.match_info["telegram_id"]
+        telegram_id = int(self.request.match_info["telegram_id"])
         user = self.request.app["user"]
 
-        user_info = await user.get_user(telegram_id)
+        user_info = await user.retrieve_user(telegram_id)
         if not user_info:
             return web.json_response(
                 data={
@@ -36,10 +35,10 @@ class UserView(web.View):
 
     async def post(self):
         """Create new user in database."""
-        telegram_id = self.request.match_info["telegram_id"]
+        telegram_id = int(self.request.match_info["telegram_id"])
         data = await self.request.json()
-        user = self.request.app["user"]
 
+        user = self.request.app["user"]
         created = await user.create_user(telegram_id, data)
         if not created:
             return web.json_response(
@@ -69,10 +68,11 @@ class SpreadsheetView(web.View):
         get access to user`s google spreadsheet account.
         """
         spreadsheet_auth = self.request.app["spreadsheet_auth"]
+        spreadsheet_auth_url = spreadsheet_auth.auth_url
         return web.json_response(
             data={
                 "success": True,
-                "auth_url": spreadsheet_auth.auth_url
+                "auth_url": spreadsheet_auth_url
             },
             status=200
         )
@@ -116,7 +116,13 @@ class SpreadsheetView(web.View):
                 status=400
             )
 
-        return web.json_response(data={"success": True}, status=200)
+        return web.json_response(
+            data={
+                "success": True,
+                "message": "The spreadsheet account was registered successfully."
+            },
+            status=200
+        )
 
 
 @routes.view('/monobank')
@@ -137,14 +143,10 @@ class MonobankView(web.View):
                 status=400
             )
 
-        monobank, user = self.request.app["monobank"], self.request.app["user"]
-        webhook_response, token_updated = await asyncio.gather(
-            monobank.set_webhook(telegram_id, token),
-            user.update_monobank_token(telegram_id, token)
-        )
-
-        _, status = webhook_response
-        if status != 200 or not token_updated:
+        ngrok_domain = self.request.app["constants"]["NGROK_DOMAIN"]
+        monobank = self.request.app["monobank"]
+        _, status = await monobank.set_webhook(ngrok_domain, telegram_id, token)
+        if status != 200:
             return web.json_response(
                 data={"message": "The `token` isn't correct."},
                 status=400
@@ -154,4 +156,10 @@ class MonobankView(web.View):
         task_kwargs = {"telegram_id": telegram_id, "token": token}
         await redis.publish("task", {"name": "save_user_monobank_info", "kwargs": task_kwargs})
 
-        return web.json_response(data={"success": True}, status=200)
+        return web.json_response(
+            data={
+                "success": True,
+                "message": "The monobank account was registered successfully."
+            },
+            status=200
+        )

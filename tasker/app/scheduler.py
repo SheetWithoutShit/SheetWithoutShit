@@ -45,6 +45,7 @@ class TaskScheduler:
             exception_handler=_exception_handler,
         )
         setattr(scheduler, "pid", pid)
+
         pools = {
             "postgres": await PGPoolManager.create(),
             "redis": await RedisPoolManager.create(),
@@ -73,7 +74,7 @@ class TaskScheduler:
         """
         active, pending = self.scheduler.active_count, self.scheduler.pending_count
         while active or pending:
-            LOG.info("%s. Waiting to finish tasks: active=%s, pending=%s", self.pid, active, pending)
+            LOG.debug("%s. Waiting to finish tasks: active=%s, pending=%s", self.pid, active, pending)
             await asyncio.sleep(DEFAULT_SLEEP_TIME)
             active, pending = self.scheduler.active_count, self.scheduler.pending_count
 

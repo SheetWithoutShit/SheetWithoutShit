@@ -38,7 +38,7 @@ def handle_me_command(request):
         return
 
     user = response["user"]
-    first_name = user["first_name"] or "Невідомець"
+    first_name = user["first_name"] or "Незнайомець"
     last_name = user["last_name"] or ""
     spreadsheet = messages.CHECK_MARK if user["spreadsheet_refresh_token"] else messages.CROSS_MARK
     monobank = messages.CHECK_MARK if user["monobank_token"] else messages.CROSS_MARK
@@ -56,8 +56,11 @@ def handle_me_command(request):
 def handle_spreadsheet_command(request):
     """Send steps to get access to user`s spreadsheet account."""
     response = bot.api.get_spreadsheet_auth_url()
-    auth_url = response.get("auth_url")
+    if not response.get("success"):
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
 
+    auth_url = response["auth_url"]
     text = messages.SPREADSHEET_AUTH.format(auth_url=auth_url)
     message = bot.send_message(request.chat.id, text=text, parse_mode="markdown")
 
