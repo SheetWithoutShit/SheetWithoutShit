@@ -18,4 +18,23 @@ class Bot(TeleBot):
         domain = f"{server_host}:{server_port}"
 
         self.api = API(domain, token)
+        self.commands = []
         super().__init__(token)
+
+    def add_message_handler(self, handler_dict):
+        """Add name of message handler."""
+        super().add_message_handler(handler_dict)
+
+        commands_names = handler_dict["filters"]["commands"]
+        commands = [f"/{command}" for command in commands_names]
+        self.commands.extend(commands)
+
+    def check_command(self, func):
+        """Process command if it was provided by user."""
+        def wrapper(message, *args, **kwargs):
+            if any([message.text.startswith(command) for command in self.commands]):
+                return self.process_new_messages([message])
+
+            return func(message, *args, **kwargs)
+
+        return wrapper

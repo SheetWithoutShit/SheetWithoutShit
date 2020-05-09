@@ -74,6 +74,7 @@ def handle_spreadsheet_command(request):
     bot.register_next_step_handler(message, handle_spreadsheet_registration)
 
 
+@bot.check_command
 def handle_spreadsheet_registration(request):
     """Handle step for activating user`s spreadsheet account."""
     auth_code = request.text.strip()
@@ -96,6 +97,7 @@ def handle_monobank_command(request):
     bot.register_next_step_handler(message, handle_monobank_registration)
 
 
+@bot.check_command
 def handle_monobank_registration(request):
     """Handle step for activating user`s monobank account."""
     token = request.text.strip()
