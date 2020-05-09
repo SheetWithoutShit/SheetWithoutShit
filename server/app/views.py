@@ -1,5 +1,7 @@
 """This module provides views for server app."""
 
+import asyncio
+
 from aiohttp import web
 
 
@@ -154,7 +156,10 @@ class MonobankView(web.View):
 
         redis = self.request.app["redis"]
         task_kwargs = {"telegram_id": telegram_id, "token": token}
-        await redis.publish("task", {"name": "save_user_monobank_info", "kwargs": task_kwargs})
+        await asyncio.gather(
+            redis.publish("task", {"name": "save_monobank_info", "kwargs": task_kwargs}),
+            redis.publish("task", {"name": "save_monobank_month_transactions", "kwargs": task_kwargs})
+        )
 
         return web.json_response(
             data={

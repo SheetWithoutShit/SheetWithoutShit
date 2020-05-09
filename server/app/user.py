@@ -52,7 +52,7 @@ class User:
                 last_name
             )
         except (exceptions.PostgresError, ValueError) as err:
-            LOG.error("Couldn't create user=%s. Error: %s", telegram_id, err.message)
+            LOG.error("Couldn't create user=%s. Error: %s", telegram_id, err)
 
     async def retrieve_user(self, telegram_id):
         """Retrieve user from database by `telegram_id`."""
@@ -60,7 +60,7 @@ class User:
             record = await self._postgres.fetchone(GET_USER, telegram_id)
             return dict(record.items())
         except (exceptions.PostgresError, AttributeError) as err:
-            LOG.error("Couldn't retrieve user=%s. Error: %s", telegram_id, err.message)
+            LOG.error("Couldn't retrieve user=%s. Error: %s", telegram_id, err)
 
     async def update_spreadsheet_token(self, telegram_id, refresh_token):
         """Update user`s spreadsheet refresh token."""
@@ -71,7 +71,7 @@ class User:
                 refresh_token
             )
         except exceptions.PostgresError as err:
-            LOG.error("Could not update user=%s spreadsheet token. Error: %s", telegram_id, err.message)
+            LOG.error("Could not update user=%s spreadsheet token. Error: %s", telegram_id, err)
 
     async def update_monobank_token(self, telegram_id, token):
         """Update user`s monobank token."""
@@ -82,4 +82,4 @@ class User:
                 token
             )
         except exceptions.PostgresError as err:
-            LOG.error("Could not update user=%s monobank token. Error: %s", telegram_id, err.message)
+            LOG.error("Could not update user=%s monobank token. Error: %s", telegram_id, err)
