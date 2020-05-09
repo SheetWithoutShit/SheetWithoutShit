@@ -18,7 +18,7 @@ def init_logging():
 
     log_dir = os.environ.get("LOG_DIR")
     log_filepath = f'{log_dir}/telegram.log'
-    if log_dir and os.path.exists(log_filepath) and os.access(log_filepath, os.W_OK):
+    if log_dir and os.path.isfile(log_filepath) and os.access(log_filepath, os.W_OK):
         formatter = logging.Formatter(LOG_FORMAT)
         file_handler = logging.FileHandler(log_filepath)
         file_handler.setLevel(logging.INFO)

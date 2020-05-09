@@ -12,7 +12,7 @@
 
 create table "BUDGET" (
 	id serial constraint budget_pk primary key,
-	income numeric not null,
+	income numeric(12, 2) not null,
 	savings smallint default 0,
 	year smallint not null,
 	month smallint not null,

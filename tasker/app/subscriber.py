@@ -68,7 +68,7 @@ class TaskReader:
             try:
                 task, kwargs = TaskReader.parse_task_info(message)
             except (json.JSONDecodeError, KeyError) as err:
-                LOG.error("%s. Received invalid task: %s. Error: ", self.pid, err.message)
+                LOG.error("%s. Received invalid task: %s. Error: ", self.pid, err)
                 continue
 
             if task == self.ping_task:

@@ -14,9 +14,9 @@
 create table "TRANSACTION" (
     id varchar constraint transaction_pk primary key,
 	user_id int constraint transaction_user_fk references "USER" on delete cascade not null,
-	amount numeric not null,
-	balance numeric,
-	cashback numeric default 0,
+	amount numeric(12, 2) not null,
+	balance numeric(12, 2),
+	cashback numeric(12, 2) default 0,
 	mcc smallint constraint transaction_mcc_fk references "MCC" on delete set default default -1,
 	timestamp timestamp default now(),
 	info varchar
