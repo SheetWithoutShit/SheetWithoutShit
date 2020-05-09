@@ -18,15 +18,13 @@ GET_USER = """
      WHERE telegram_id=$1
 """
 
-UPDATE_SPREADSHEET_REFRESH_TOKEN = """
+UPDATE_USER = """
     UPDATE "USER"
-       SET spreadsheet_refresh_token=$2
-     WHERE telegram_id=$1
-"""
-
-UPDATE_MONOBANK_TOKEN = """
-    UPDATE "USER"
-       SET monobank_token=$2
+       SET first_name = COALESCE($2, first_name),
+           last_name = COALESCE($3, last_name),
+           notifications_enabled = COALESCE($4, notifications_enabled),
+           monobank_token= COALESCE($5, monobank_token),
+           spreadsheet_refresh_token= COALESCE($6, spreadsheet_refresh_token)
      WHERE telegram_id=$1
 """
 
@@ -38,6 +36,17 @@ class User:
         """Initialize user instance with required clients."""
         self._postgres = postgres
         self._redis = redis
+
+    @staticmethod
+    def _format_update_args(args):
+        """Format query arguments for updating user."""
+        return (
+            args.get("first_name"),
+            args.get("last_name"),
+            args.get("notifications_enabled"),
+            args.get("monobank_token"),
+            args.get("spreadsheet_refresh_token")
+        )
 
     async def create_user(self, telegram_id, user):
         """Create new user in database."""
@@ -62,24 +71,10 @@ class User:
         except (exceptions.PostgresError, AttributeError) as err:
             LOG.error("Couldn't retrieve user=%s. Error: %s", telegram_id, err)
 
-    async def update_spreadsheet_token(self, telegram_id, refresh_token):
-        """Update user`s spreadsheet refresh token."""
+    async def update_user(self, telegram_id, data):
+        """Update user`s data in database by `telegram_id`."""
+        update_args = User._format_update_args(data)
         try:
-            return await self._postgres.execute(
-                UPDATE_SPREADSHEET_REFRESH_TOKEN,
-                telegram_id,
-                refresh_token
-            )
+            return await self._postgres.execute(UPDATE_USER, telegram_id, *update_args)
         except exceptions.PostgresError as err:
             LOG.error("Could not update user=%s spreadsheet token. Error: %s", telegram_id, err)
-
-    async def update_monobank_token(self, telegram_id, token):
-        """Update user`s monobank token."""
-        try:
-            return await self._postgres.execute(
-                UPDATE_MONOBANK_TOKEN,
-                telegram_id,
-                token
-            )
-        except exceptions.PostgresError as err:
-            LOG.error("Could not update user=%s monobank token. Error: %s", telegram_id, err)

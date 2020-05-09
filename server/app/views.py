@@ -59,6 +59,30 @@ class UserView(web.View):
             status=200
         )
 
+    async def put(self):
+        """Update user`s data in database."""
+        telegram_id = int(self.request.match_info["telegram_id"])
+        data = await self.request.json()
+
+        user = self.request.app["user"]
+        updated = await user.update_user(telegram_id, data)
+        if not updated:
+            return web.json_response(
+                data={
+                    "success": False,
+                    "message": "The user wasn't updated. Something went wrong. Try again, please."
+                },
+                status=400
+            )
+
+        return web.json_response(
+            data={
+                "success": True,
+                "message": "The user was successfully updated."
+            },
+            status=200
+        )
+
 
 @routes.view('/spreadsheet')
 class SpreadsheetView(web.View):
@@ -105,9 +129,9 @@ class SpreadsheetView(web.View):
             )
 
         user = self.request.app["user"]
-        updated = await user.update_spreadsheet_token(
+        updated = await user.update_user(
             telegram_id,
-            spreadsheet_credentials["refresh_token"]
+            {"spreadsheet_refresh_token": spreadsheet_credentials["refresh_token"]}
         )
         if not updated:
             return web.json_response(
