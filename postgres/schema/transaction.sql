@@ -21,3 +21,5 @@ create table "TRANSACTION" (
 	timestamp timestamp default now(),
 	info varchar
 );
+
+CREATE INDEX IF NOT EXISTS transaction_user_idx ON "TRANSACTION" (user_id);
