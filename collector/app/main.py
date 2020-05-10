@@ -7,14 +7,19 @@ import logging
 from aiohttp.web import Application, run_app
 from core.database.postgres import PoolManager as PGPoolManager
 from core.database.redis import PoolManager as RedisPoolManager
+from core.telegram import TelegramBot
 
+from user import User
 from views import routes
-from transaction import Transaction, SELECT_MCC_CODES
+from transaction import Transaction
 
 
 LOG = logging.getLogger("")
 LOG_FORMAT = "%(asctime)s - %(levelname)s: %(name)s: %(message)s"
 ACCESS_LOG_FORMAT = "%a [VIEW: %r] [RESPONSE: %s (%bb)] [TIME: %Dms]"
+SELECT_MCC_CODES = """
+    SELECT code, category FROM "MCC";
+"""
 
 
 def init_logging():
@@ -40,7 +45,7 @@ async def prepare_data(app):
         * Store mcc codes retrieved from postgres to redis.
     """
     postgres, redis = app["postgres"], app["redis"]
-    codes = [x["code"] for x in await postgres.fetch(SELECT_MCC_CODES)]
+    codes = {x["code"]: x["category"] for x in await postgres.fetch(SELECT_MCC_CODES)}
     await redis.dump("mcc", codes)
     LOG.debug("Data was successfully prepared.")
 
@@ -53,21 +58,27 @@ async def prepare_data(app):
 async def init_clients(app):
     """
     Initialize aiohttp application with clients.
+        * telegram bot
         * redis pool manager
         * postgres pool manager
         * transaction model
     """
+    telegram_bot_token = os.environ["TELEGRAM_BOT_TOKEN"]
+
+    app["bot"] = bot = TelegramBot(telegram_bot_token)
     app["postgres"] = postgres = await PGPoolManager.create()
     app["redis"] = redis = await RedisPoolManager.create()
 
     app["transaction"] = Transaction(postgres=postgres, redis=redis)
+    app["user"] = User(postgres=postgres, redis=redis, bot=bot)
     LOG.debug("Clients has successfully initialized.")
 
     yield
 
     await asyncio.gather(
         postgres.close(),
-        redis.close()
+        redis.close(),
+        bot.close()
     )
     LOG.debug("Clients has successfully closed.")
 
