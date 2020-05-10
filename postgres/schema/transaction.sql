@@ -22,4 +22,4 @@ create table "TRANSACTION" (
 	info varchar
 );
 
-CREATE INDEX IF NOT EXISTS transaction_user_idx ON "TRANSACTION" (user_id);
+CREATE INDEX transaction_user_timestamp_idx ON "TRANSACTION" (user_id, timestamp);
