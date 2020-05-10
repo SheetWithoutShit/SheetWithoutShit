@@ -72,11 +72,8 @@ async def init_clients(app):
     LOG.debug("Clients has successfully closed.")
 
 
-def main():
-    """Create aiohttp web server and run it."""
-    host = os.environ.get("COLLECTOR_HOST", "localhost")
-    port = os.environ.get("COLLECTOR_PORT", 5010)
-
+def init_app():
+    """Prepare aiohttp web server for further running."""
     app = Application()
 
     init_logging()
@@ -84,13 +81,16 @@ def main():
     app.cleanup_ctx.append(init_clients)
     app.cleanup_ctx.append(prepare_data)
 
+    return app
+
+
+if __name__ == '__main__':
+    host = os.environ.get("COLLECTOR_HOST", "localhost")
+    port = os.environ.get("COLLECTOR_PORT", 5010)
+
     run_app(
-        app,
+        init_app(),
         host=host,
         port=port,
         access_log_format=ACCESS_LOG_FORMAT
     )
-
-
-if __name__ == '__main__':
-    main()
