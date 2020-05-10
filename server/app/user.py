@@ -14,7 +14,9 @@ CREATE_USER = """
 """
 
 GET_USER = """
-    SELECT * FROM "USER"
+    SELECT user_table.*, budget.spreadsheet
+      FROM "USER" as user_table
+      JOIN "BUDGET" as budget ON user_table.telegram_id=budget.user_id
      WHERE telegram_id=$1
 """
 

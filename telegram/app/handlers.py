@@ -39,16 +39,24 @@ def handle_me_command(request):
     user = response["user"]
     first_name = user["first_name"] or "Незнайомець"
     last_name = user["last_name"] or ""
-    spreadsheet = messages.CHECK_MARK if user["spreadsheet_refresh_token"] else messages.CROSS_MARK
-    monobank = messages.CHECK_MARK if user["monobank_token"] else messages.CROSS_MARK
+
+    spreadsheet_id = user["spreadsheet"]
+    notifications_mark = messages.CHECK_MARK if user["notifications_enabled"] else messages.CROSS_MARK
+    spreadsheet_mark = messages.CHECK_MARK if spreadsheet_id else messages.CROSS_MARK
+
+    spreadsheet_token_mark = messages.CHECK_MARK if user["spreadsheet_refresh_token"] else messages.CROSS_MARK
+    monobank_mark = messages.CHECK_MARK if user["monobank_token"] else messages.CROSS_MARK
 
     text = messages.USER_INFO.format(
         first_name=first_name,
         last_name=last_name,
-        spreadsheet=spreadsheet,
-        monobank=monobank
+        notifications_mark=notifications_mark,
+        spreadsheet_mark=spreadsheet_mark,
+        spreadsheet_id=spreadsheet_id,
+        monobank_mark=monobank_mark,
+        spreadsheet_token_mark=spreadsheet_token_mark,
     )
-    bot.send_message(request.chat.id, text=text)
+    bot.send_message(request.chat.id, text=text, parse_mode="markdown")
 
 
 @bot.message_handler(commands=["spreadsheet"])
