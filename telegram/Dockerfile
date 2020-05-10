@@ -6,3 +6,5 @@ COPY requirements.txt /telegram
 
 RUN pip install --upgrade pip && \
     pip install -r /telegram/requirements.txt
+
+WORKDIR /telegram/app

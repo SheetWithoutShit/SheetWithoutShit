@@ -79,11 +79,8 @@ async def init_constants(app):
     constants["TELEGRAM_TOKEN"] = os.environ["TELEGRAM_BOT_TOKEN"]
 
 
-def main():
-    """Create aiohttp web server and run it."""
-    host = os.environ.get("SERVER_HOST", "localhost")
-    port = os.environ.get("SERVER_PORT", 5000)
-
+def init_app():
+    """Prepare aiohttp web server for further running."""
     app = Application()
     init_logging()
 
@@ -92,13 +89,16 @@ def main():
     app.on_startup.append(init_constants)
     app.middlewares.append(check_auth)
 
+    return app
+
+
+if __name__ == '__main__':
+    host = os.environ.get("SERVER_HOST", "localhost")
+    port = os.environ.get("SERVER_PORT", 5000)
+
     run_app(
-        app,
+        init_app(),
         host=host,
         port=port,
         access_log_format=ACCESS_LOG_FORMAT
     )
-
-
-if __name__ == '__main__':
-    main()
