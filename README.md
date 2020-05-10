@@ -32,7 +32,11 @@
     ```shell script
     agnostic -t postgres -u <user> --password <password> -d <db name> -m ./postgres/migrations -h <host> -p <port> test
     ```
-
+* Postgres
+    * Run SQL script from the file:
+    ```shell script
+    psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -a -f <file_name>
+    ```
 ### Environment variables
 ```shell script
 TELEGRAM_BOT_TOKEN=
