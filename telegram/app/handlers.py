@@ -1,8 +1,7 @@
 """This module provides main bot`s message handlers."""
 
-from bot import Bot
-
 import messages
+from bot import Bot
 
 
 bot = Bot()
@@ -98,3 +97,18 @@ def handle_monobank_registration(request):
         return
 
     bot.send_message(request.chat.id, text=messages.MONOBANK_AUTH_SUCCESS)
+
+
+@bot.message_handler(commands=["notifications_on", "notifications_off"])
+def handle_notifications_on_command(request):
+    """Handle notification action command in order to (de)activate notifications.."""
+    notifications_enabled = request.text.startswith("/notifications_on")
+    user_data = {"notifications_enabled": notifications_enabled}
+    response = bot.api.update_user(request.chat.id, user_data)
+    if not response.get("success"):
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
+
+    notifications_action = "активовано" if notifications_enabled else "деактивовано"
+    text = messages.NOTIFICATION_ACTIONS.format(action=notifications_action)
+    bot.send_message(request.chat.id, text=text)

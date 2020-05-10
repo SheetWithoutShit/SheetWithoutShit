@@ -46,6 +46,15 @@ class API:
         return response
 
     @parse_response
+    def update_user(self, telegram_id, data):
+        """Put request in order to update user information."""
+        endpoint = f"{self.domain}/user/{telegram_id}"
+        user_data = json.dumps(data)
+        response = self.session.put(endpoint, data=user_data)
+
+        return response
+
+    @parse_response
     def get_spreadsheet_auth_url(self):
         """Get request in order to retrieve spreadsheet auth url."""
         endpoint = f"{self.domain}/spreadsheet"
