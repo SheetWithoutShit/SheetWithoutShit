@@ -79,6 +79,7 @@ async def save_monobank_month_transactions(pools, telegram_id, token):
     http, postgres, redis = pools["http"], pools["postgres"], pools["redis"]
     response, status = await http.get(url=endpoint, headers=headers)
     if status != 200:
+        # TODO: test multiple requests for different token.
         LOG.error("Couldn't retrieve user`s=%s transactions from monobank. Error: %s", telegram_id, response)
         return
 

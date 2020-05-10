@@ -16,7 +16,7 @@ CREATE_USER = """
 GET_USER = """
     SELECT user_table.*, budget.spreadsheet
       FROM "USER" as user_table
-      JOIN "BUDGET" as budget ON user_table.telegram_id=budget.user_id
+      LEFT JOIN "BUDGET" as budget ON user_table.telegram_id=budget.user_id
      WHERE telegram_id=$1
 """
 
@@ -70,8 +70,10 @@ class User:
         try:
             record = await self._postgres.fetchone(GET_USER, telegram_id)
             return dict(record.items())
-        except (exceptions.PostgresError, AttributeError) as err:
+        except exceptions.PostgresError as err:
             LOG.error("Couldn't retrieve user=%s. Error: %s", telegram_id, err)
+        except AttributeError:
+            LOG.error("User=%s doesn't not exist.", telegram_id)
 
     async def update_user(self, telegram_id, data):
         """Update user`s data in database by `telegram_id`."""
