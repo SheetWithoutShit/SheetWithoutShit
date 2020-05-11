@@ -3,6 +3,6 @@
 \i schema/budget.sql;
 \i schema/transaction.sql;
 
-\i triggers/income.sql;
+\i triggers/budget.sql;
 
 \i data/mcc.sql;

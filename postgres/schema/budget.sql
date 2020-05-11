@@ -12,10 +12,10 @@
 
 create table "BUDGET" (
 	id serial constraint budget_pk primary key,
-	income numeric(12, 2) not null,
+	income numeric(12, 2) default 0.00,
 	savings smallint default 0,
 	year smallint not null,
 	month smallint not null,
-	spreadsheet varchar not null,
+	spreadsheet varchar,
 	user_id int constraint budget_user_fk references "USER" on delete cascade not null
 );

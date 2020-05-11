@@ -109,6 +109,35 @@ def handle_monobank_registration(request):
     bot.send_message(request.chat.id, text=messages.MONOBANK_AUTH_SUCCESS)
 
 
+@bot.message_handler(commands=["savings"])
+def handle_savings_command(request):
+    """Send step in order to modify budget savings."""
+    response = bot.api.get_user(request.chat.id)
+    if not response.get("success"):
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
+
+    savings = response["user"]["savings"]
+    text = messages.SAVINGS_ACTION.format(savings=savings)
+    message = bot.send_message(request.chat.id, text=text)
+    bot.register_next_step_handler(message, handle_savings_modification)
+
+
+@bot.check_command
+def handle_savings_modification(request):
+    """Handle step to modify user`s savings by provided integer."""
+    if not request.text.strip().isdigit():
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
+
+    response = bot.api.update_savings(request.chat.id, int(request.text))
+    if not response.get("success"):
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
+
+    bot.send_message(request.chat.id, text=messages.SAVINGS_SUCCESS)
+
+
 @bot.message_handler(commands=["notifications_on", "notifications_off"])
 def handle_notifications_on_command(request):
     """Handle notification action command in order to (de)activate notifications.."""

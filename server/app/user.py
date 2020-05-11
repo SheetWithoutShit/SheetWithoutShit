@@ -14,10 +14,12 @@ CREATE_USER = """
 """
 
 GET_USER = """
-    SELECT user_table.*, budget.spreadsheet
+    SELECT user_table.*, budget.spreadsheet, budget.savings
       FROM "USER" as user_table
       LEFT JOIN "BUDGET" as budget ON user_table.telegram_id=budget.user_id
      WHERE telegram_id=$1
+           and budget.year = EXTRACT(YEAR FROM CURRENT_TIMESTAMP)
+           and budget.month = EXTRACT(MONTH FROM CURRENT_TIMESTAMP)
 """
 
 UPDATE_USER = """
@@ -28,6 +30,14 @@ UPDATE_USER = """
            monobank_token= COALESCE($5, monobank_token),
            spreadsheet_refresh_token= COALESCE($6, spreadsheet_refresh_token)
      WHERE telegram_id=$1
+"""
+
+UPDATE_SAVINGS = """
+    UPDATE "BUDGET"
+       SET savings=$2
+     WHERE user_id = $1
+           and year = EXTRACT(YEAR FROM CURRENT_TIMESTAMP)
+           and month = EXTRACT(MONTH FROM CURRENT_TIMESTAMP)
 """
 
 
@@ -82,3 +92,10 @@ class User:
             return await self._postgres.execute(UPDATE_USER, telegram_id, *update_args)
         except exceptions.PostgresError as err:
             LOG.error("Could not update user=%s spreadsheet token. Error: %s", telegram_id, err)
+
+    async def update_savings(self, telegram_id, savings):
+        """Update user`s budget savings for the current month."""
+        try:
+            return await self._postgres.execute(UPDATE_SAVINGS, telegram_id, savings)
+        except exceptions.PostgresError as err:
+            LOG.error("Could not update user=%s savings. Error: %s", telegram_id, err)

@@ -10,6 +10,7 @@ services:
       - NGROK_PORT=collector:${COLLECTOR_PORT}
     ports:
       - 4040:4040
+    restart: always
 
   postgres:
     image: postgres:10
@@ -22,6 +23,7 @@ services:
     volumes:
       - ./postgres:/docker-entrypoint-initdb.d/
       - postgres-data:/var/lib/postgresql/data/
+    restart: always
 
   redis:
     image: redis:5
@@ -33,6 +35,7 @@ services:
       - .env
     depends_on:
       - postgres
+    restart: always
 
   collector:
     container_name: sws_collector
@@ -50,6 +53,7 @@ services:
       - redis
     ports:
       - ${COLLECTOR_PORT:-5010}:${COLLECTOR_PORT:-5010}
+    restart: always
 
   server:
     container_name: sws_server
@@ -68,6 +72,7 @@ services:
       - ngrok
     ports:
       - ${SERVER_PORT:-5000}:${SERVER_PORT:-5000}
+    restart: always
 
   telegram:
     container_name: sws_telegram
@@ -84,6 +89,7 @@ services:
       - postgres
       - redis
       - server
+    restart: always
 
   tasker:
     container_name: sws_tasker
@@ -98,6 +104,7 @@ services:
       - /var/log/sws/tasker.log:/var/log/sws/tasker.log
     depends_on:
       - redis
+    restart: always
 
 volumes:
   postgres-data:
