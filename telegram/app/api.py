@@ -79,3 +79,12 @@ class API:
         response = self.session.post(endpoint, data=data)
 
         return response
+
+    @parse_response
+    def update_savings(self, telegram_id, savings):
+        """Put request in order to update budget savings."""
+        endpoint = f"{self.domain}/user/{telegram_id}/savings"
+        savings_data = json.dumps({"savings": savings})
+        response = self.session.put(endpoint, data=savings_data)
+
+        return response

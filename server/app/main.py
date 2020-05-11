@@ -9,7 +9,8 @@ from aiohttp.web import Application, run_app
 from core.database.postgres import PoolManager as PGPoolManager
 from core.database.redis import PoolManager as RedisPoolManager
 
-from views import routes
+from views.user import user_routes
+from views.services import services_routes
 from user import User
 from spreadsheet import SpreadsheetAuth
 from middlewares import check_auth
@@ -84,7 +85,9 @@ def init_app():
     app = Application()
     init_logging()
 
-    app.add_routes(routes)
+    app.add_routes(user_routes)
+    app.add_routes(services_routes)
+
     app.cleanup_ctx.append(init_clients)
     app.on_startup.append(init_constants)
     app.middlewares.append(check_auth)
