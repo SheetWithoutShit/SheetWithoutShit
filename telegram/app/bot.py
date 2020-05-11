@@ -25,7 +25,7 @@ class Bot(TeleBot):
         """Add name of message handler."""
         super().add_message_handler(handler_dict)
 
-        commands_names = handler_dict["filters"]["commands"]
+        commands_names = handler_dict["filters"]["commands"] or []
         commands = [f"/{command}" for command in commands_names]
         self.commands.extend(commands)
 

@@ -122,3 +122,11 @@ def handle_notifications_on_command(request):
     notifications_action = "активовано" if notifications_enabled else "деактивовано"
     text = messages.NOTIFICATION_ACTIONS.format(action=notifications_action)
     bot.send_message(request.chat.id, text=text)
+
+
+@bot.message_handler(content_types=['text'])
+def handle_atypical_command(request):
+    """Send available commands to user."""
+    commands = "\n▪ ".join(bot.commands)
+    text = messages.INVALID_TEXT.format(commands=commands)
+    bot.send_message(request.from_user.id, text)
