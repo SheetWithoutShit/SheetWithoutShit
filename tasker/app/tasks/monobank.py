@@ -1,4 +1,4 @@
-"""This module provides tasks related to user."""
+"""This module provides tasks related to interactions with monobank."""
 
 import logging
 from datetime import datetime
@@ -23,14 +23,14 @@ INSERT_TRANSACTIONS = """
 """
 
 
-def _prepare_transactions(response, user_id, mcc_codes):
+def _prepare_transactions(response, telegram_id, mcc_codes):
     """Parse response from monobank API and return formatted transaction."""
     transactions = []
     costs_converter = 100.0
     for transaction in response:
         transactions.append((
             transaction["id"],
-            user_id,
+            telegram_id,
             transaction["amount"] / costs_converter,
             transaction["balance"] / costs_converter,
             transaction["cashbackAmount"] / costs_converter,

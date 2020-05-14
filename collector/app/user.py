@@ -43,6 +43,9 @@ class User:
 
     async def notify_user(self, user_id, transaction):
         """Notify user about accomplishment transaction."""
+        if not await self.is_notifications_enabled(user_id):
+            return
+
         mcc_codes = await self._redis.get("mcc", deserialize=True, default=[])
         category = mcc_codes.get(transaction["mcc"], "-")
         date = datetime.fromtimestamp(transaction["timestamp"]).strftime("%d.%m.%Y %H:%M:%S")

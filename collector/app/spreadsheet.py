@@ -3,7 +3,6 @@
 import os
 
 from core.http import HTTPRequest
-from core.decorators import aioshield
 
 
 SPREADSHEET_API = "https://sheets.googleapis.com/v4/spreadsheets"
@@ -55,7 +54,6 @@ class SpreadsheetAPI(HTTPRequest):
             "Authorization": f"Bearer {token}"
         }
 
-    @aioshield
     async def update_sheet(self, token, spreadsheet_id, modifications, input_option):
         """Set values in one or more ranges of a spreadsheet."""
         url = f'{SPREADSHEET_API}/{spreadsheet_id}/values:batchUpdate'

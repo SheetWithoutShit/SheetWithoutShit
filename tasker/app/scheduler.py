@@ -9,9 +9,10 @@ from core.http import HTTPRequest
 from core.database.postgres import PoolManager as PGPoolManager
 from core.database.redis import PoolManager as RedisPoolManager
 
+import tasks
+
 
 LOG = logging.getLogger(__name__)
-DEFAULT_SLEEP_TIME = 5
 
 
 def _exception_handler(scheduler, context):
@@ -19,7 +20,7 @@ def _exception_handler(scheduler, context):
     job, error = context["job"], context["exception"]
     LOG.error(
         "%s. Task <%s> failed. Error: %s",
-        scheduler.pid,
+        scheduler.__name__,
         job._coro.__name__,  # pylint: disable=protected-access
         error
     )
@@ -30,21 +31,15 @@ class TaskScheduler:
 
     def __init__(self):
         """Initialize task scheduler instance."""
-        self.pid = None
         self.scheduler = None
-        self.tasks = None
         self.pools = None
+        self.tasks = tasks
 
     @classmethod
-    async def create(cls, pid, tasks, limit, pending_limit):
+    async def create(cls):
         """Create task scheduler instance."""
         instance = cls()
-        scheduler = await aiojobs.create_scheduler(
-            limit=limit,
-            pending_limit=pending_limit,
-            exception_handler=_exception_handler,
-        )
-        setattr(scheduler, "pid", pid)
+        scheduler = await aiojobs.create_scheduler(exception_handler=_exception_handler)
 
         pools = {
             "postgres": await PGPoolManager.create(),
@@ -53,7 +48,6 @@ class TaskScheduler:
         }
 
         instance.scheduler = scheduler
-        instance.tasks = tasks
         instance.pools = pools
 
         return instance
@@ -72,10 +66,12 @@ class TaskScheduler:
         Wait to finish all active, pending tasks
         and gracefully close scheduler loop.
         """
+        wait_time = 5
         active, pending = self.scheduler.active_count, self.scheduler.pending_count
         while active or pending:
-            LOG.debug("%s. Waiting to finish tasks: active=%s, pending=%s", self.pid, active, pending)
-            await asyncio.sleep(DEFAULT_SLEEP_TIME)
+            LOG.debug("Waiting to finish tasks: active=%s, pending=%s", active, pending)
+            await asyncio.sleep(wait_time)
             active, pending = self.scheduler.active_count, self.scheduler.pending_count
 
-        await self.scheduler.close()
+        for pool in [self.scheduler, *self.pools.values()]:
+            await pool.close()

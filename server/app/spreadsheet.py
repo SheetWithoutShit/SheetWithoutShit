@@ -4,7 +4,6 @@ import os
 from urllib import parse
 
 from core.http import HTTPRequest
-from core.decorators import aioshield
 
 
 SPREADSHEET_TOKEN = "https://oauth2.googleapis.com/token"
@@ -36,7 +35,6 @@ class SpreadsheetAuth(HTTPRequest):
         }
         return f'{SPREADSHEET_OAUTH}?{parse.urlencode(params)}'
 
-    @aioshield
     async def fetch_credentials(self, auth_code):
         """
         Return received user credentials for provided auth code.

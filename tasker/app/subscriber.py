@@ -1,10 +1,11 @@
 """This module provides functionality for Redis subscribing."""
 
-import os
 import json
 import logging
 
 import aioredis
+
+from core.database.redis import PoolManager as Redis
 
 
 LOG = logging.getLogger(__name__)
@@ -18,65 +19,50 @@ class TaskReader:
 
     def __init__(self):
         """Initialize redis connection instance with env configs."""
-        self.pid = None
-        self.redis = None
+        self.redis_conn = None
         self.channel = None
-        self.channel_name = None
-
-        host = os.environ["REDIS_HOST"]
-        port = os.environ["REDIS_PORT"]
-        self.address = (host, port)
-        self.password = os.environ.get("REDIS_PASSWORD")
+        self.channel_name = "task"
 
     @classmethod
-    async def create(cls, pid):
+    async def create(cls):
         """Create high-level interface instance bound to single connection."""
         instance = cls()
-        instance.pid = pid
-        instance.redis = await aioredis.create_redis(
-            address=instance.address,
-            password=instance.password,
-        )
+        instance.redis_conn = await Redis.create_connection()
 
         return instance
 
-    @staticmethod
-    def parse_task_info(message):
-        """Return parsed information about task."""
-        task = json.loads(message)
-        return task["name"], task.get("kwargs", {})
-
-    async def subscribe(self, channel_name):
+    async def subscribe(self):
         """Subscribe to provided channel."""
-        self.channel, *_ = await self.redis.subscribe(channel_name)
-        self.channel_name = self.channel.name.decode("utf-8")
+        self.channel = aioredis.Channel(name=self.channel_name, is_pattern=False)
+        await self.redis_conn.execute_pubsub("subscribe", self.channel)
 
     async def close(self):
         """Unsubscribe from channel and close redis connection."""
-        await self.redis.unsubscribe(self.channel_name)
+        await self.redis_conn.execute_pubsub("unsubscribe", self.channel_name)
+        self.channel.close()
 
-        self.redis.close()
-        await self.redis.wait_closed()
+        self.redis_conn.close()
+        await self.redis_conn.wait_closed()
 
     async def read(self, scheduler):
         """Infinity reading messages from redis broker and spawning tasks."""
-        LOG.debug("%s. Start reading tasks from channel: <%s>", self.pid, self.channel_name)
+        LOG.debug("Start reading tasks from channel: <%s>", self.channel_name)
 
         while await self.channel.wait_message():
-            message = await self.channel.get(encoding="utf-8")
+            message = await self.channel.get(encoding="utf-8", decoder=json.loads)
 
             try:
-                task, kwargs = TaskReader.parse_task_info(message)
-            except (json.JSONDecodeError, KeyError) as err:
-                LOG.error("%s. Received invalid task: %s. Error: ", self.pid, err)
+                task, kwargs = message["name"], message.get("kwargs", {})
+            except KeyError as err:
+                LOG.error("Received invalid task: %s. Error: ", err)
                 continue
 
             if task == self.ping_task:
-                LOG.info("%s. Someone annoying me with the message: %s", self.pid, message)
+                LOG.info("Someone annoying me with the message: %s", message)
                 continue
             if task == self.stop_task:
-                LOG.info("%s. Received stop task. Starting self-destruction.", self.pid)
+                LOG.info("Received stop task. Starting self-destruction.")
                 return
 
-            LOG.info("%s. Received task: %s", self.pid, message)
+            LOG.info("Received task: %s", message)
             await scheduler.spawn(task, kwargs)
