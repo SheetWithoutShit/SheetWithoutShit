@@ -66,6 +66,9 @@ class SpreadsheetView(web.View):
                 status=400
             )
 
+        redis = self.request.app["redis"]
+        await redis.publish("task", {"name": "create_spreadsheet", "kwargs": {"telegram_id": telegram_id}})
+
         return web.json_response(
             data={
                 "success": True,

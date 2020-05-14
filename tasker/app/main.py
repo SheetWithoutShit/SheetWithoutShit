@@ -1,13 +1,11 @@
 """This module provides task app initialization."""
 
 import os
-import argparse
 import asyncio
 import logging
 
-import tasks
-from subscriber import TaskReader
 from scheduler import TaskScheduler
+from subscriber import TaskReader
 
 
 LOG = logging.getLogger("")
@@ -31,35 +29,24 @@ def init_logging():
         logging.getLogger("").addHandler(file_handler)
 
 
-async def main(channel_name, limit, pending_limit):
-    """
-    Initialize tasker application with required entities.
+async def main():
+    """Initialize tasker with required entities.
         * redis subscriber (TaskReader)
         * task executor (TaskScheduler)
     """
-    pid = os.getpid()
 
-    reader = await TaskReader.create(pid)
-    scheduler = await TaskScheduler.create(pid, tasks, limit, pending_limit)
+    reader = await TaskReader.create()
+    scheduler = await TaskScheduler.create()
 
-    await reader.subscribe(channel_name)
+    await reader.subscribe()
     await reader.read(scheduler)
 
     await reader.close()
     await scheduler.close()
 
-    LOG.debug("Tasker %s has successfully closed.", pid)
+    LOG.debug("Tasker has successfully closed.")
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--name", dest="channel_name", required=True, help="Name of channel for subscribing.")
-    parser.add_argument("--tasks-limit", dest="limit", help="Limit tasks spawned by scheduler.")
-    parser.add_argument("--pending-limit", dest="pending_limit", default=0, help="Limit pending tasks.")
-    args = parser.parse_args()
-
     init_logging()
-
-    asyncio.run(
-        main(args.channel_name, args.limit, args.pending_limit)
-    )
+    asyncio.run(main())

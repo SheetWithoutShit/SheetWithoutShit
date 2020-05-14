@@ -16,4 +16,4 @@ pycparser==2.20
 requests==2.23.0
 yarl==1.4.2
 watchgod==0.6
--e git+https://github.com/SheetWithoutShit/sws-core.git@v0.4#egg=core
+-e git+https://github.com/SheetWithoutShit/sws-core.git@v0.5#egg=core

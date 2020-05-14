@@ -94,7 +94,7 @@ services:
   tasker:
     container_name: sws_tasker
     build: ./tasker
-    command: python /tasker/app/main.py --name task
+    command: python /tasker/app/main.py
     stdin_open: true
     tty: true
     env_file:

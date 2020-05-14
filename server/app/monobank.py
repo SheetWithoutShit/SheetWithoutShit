@@ -1,7 +1,6 @@
 """This module provides interactions with monobank API."""
 
 from core.http import HTTPRequest
-from core.decorators import aioshield
 
 
 MONOBANK_API = "https://api.monobank.ua"
@@ -10,7 +9,6 @@ MONOBANK_API = "https://api.monobank.ua"
 class MonoBankAPI(HTTPRequest):
     """Class that provides HTTP API interactions with monobank API."""
 
-    @aioshield
     async def set_webhook(self, domain, user_id, token):
         """
         Set webhook based on user's token and format webhook url
