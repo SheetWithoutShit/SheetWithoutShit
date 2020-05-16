@@ -5,17 +5,18 @@ import logging
 from datetime import datetime
 
 
-__all__ = ["create_spreadsheet"]
+__all__ = ["create_spreadsheet", "create_sheet"]
 
 LOG = logging.getLogger(__name__)
 
+SPREADSHEET_NAME = "Sheet Without Shit"
 SPREADSHEET_API = "https://sheets.googleapis.com/v4/spreadsheets"
 SPREADSHEET_TOKEN_API = "https://oauth2.googleapis.com/token"
 SPREADSHEET_CLIENT_ID = os.environ["SPREADSHEET_CLIENT_ID"]
 SPREADSHEET_CLIENT_SECRET = os.environ["SPREADSHEET_CLIENT_SECRET"]
 
-GET_SPREADSHEET_TOKENS = """
-    SELECT spreadsheet_refresh_token
+GET_SPREADSHEET_INFO = """
+    SELECT spreadsheet_refresh_token, spreadsheet
       FROM "USER"
      WHERE telegram_id = $1;
 """
@@ -51,21 +52,32 @@ async def _refresh_credentials(http_client, refresh_token):
     return credentials
 
 
+def _format_spreadsheet_headers(token):
+    """
+    Return formatted authorization headers for further
+    interactions with spreadsheet api.
+    """
+    return {
+        "Authorization": f"Bearer {token}"
+    }
+
+
 async def create_spreadsheet(pools, telegram_id):
     """Create spreadsheet for user in google spreadsheet account."""
     http, postgres = pools["http"], pools["postgres"]
-
-    record = await postgres.fetchone(GET_SPREADSHEET_TOKENS, telegram_id)
+    record = await postgres.fetchone(GET_SPREADSHEET_INFO, telegram_id)
 
     credentials, status = await _refresh_credentials(http, record["spreadsheet_refresh_token"])
     if status != 200:
         LOG.error("Couldn't refresh credentials for user=%s. Error: %s", telegram_id, credentials)
         return
 
-    headers = {"Authorization": f"Bearer {credentials['access_token']}"}
+    headers = _format_spreadsheet_headers(credentials["access_token"])
     body = {
-        "properties": {"title": "Sheet Without Shit"},
-        "sheets": [{"properties": _get_sheet_properties()}]
+        "properties": {"title": SPREADSHEET_NAME},
+        "sheets": [
+            {"properties": _get_sheet_properties()}
+        ]
     }
 
     response, status = await http.post(url=SPREADSHEET_API, headers=headers, body=body)
@@ -77,3 +89,29 @@ async def create_spreadsheet(pools, telegram_id):
 
     # TODO: create task to update sheet with values
     LOG.info("Spreadsheet was successfully created for user=%s", telegram_id)
+
+
+async def create_sheet(pools, telegram_id):
+    """Create a new sheet to an existing user`s spreadsheet."""
+    http, postgres = pools["http"], pools["postgres"]
+
+    record = await postgres.fetchone(GET_SPREADSHEET_INFO, telegram_id)
+    spreadsheet, refresh_token = record["spreadsheet"], record["spreadsheet_refresh_token"]
+
+    credentials, status = await _refresh_credentials(http, refresh_token)
+    if status != 200:
+        LOG.error("Couldn't refresh credentials for user=%s. Error: %s", telegram_id, credentials)
+        return
+
+    url = f"{SPREADSHEET_API}/{spreadsheet}:batchUpdate"
+    headers = _format_spreadsheet_headers(credentials["access_token"])
+    body = {"requests": [{"addSheet": {"properties": _get_sheet_properties()}}]}
+
+    response, status = await http.post(url=url, headers=headers, body=body)
+    if status != 200:
+        LOG.error("Couldn't create sheet for user=%s. Error: %s", telegram_id, response)
+        return
+
+    await postgres.execute(UPDATE_SPREADSHEET_ID, response["spreadsheetId"], telegram_id)
+    LOG.info("Sheet was successfully created for user=%s", telegram_id)
+    # TODO: create task to update sheet with values
