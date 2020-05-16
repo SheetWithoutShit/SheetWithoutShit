@@ -33,8 +33,6 @@ services:
       - ${REDIS_PORT:-6379}
     env_file:
       - .env
-    depends_on:
-      - postgres
     restart: always
 
   collector:
@@ -70,6 +68,7 @@ services:
       - postgres
       - redis
       - ngrok
+      - tasker
     ports:
       - ${SERVER_PORT:-5000}:${SERVER_PORT:-5000}
     restart: always
@@ -86,15 +85,13 @@ services:
       - ./telegram:/telegram
       - /var/log/sws/telegram.log:/var/log/sws/telegram.log
     depends_on:
-      - postgres
-      - redis
       - server
     restart: always
 
   tasker:
     container_name: sws_tasker
     build: ./tasker
-    command: python /tasker/app/main.py
+    command: bash -c "printenv >> /etc/environment && cron && python /tasker/app/main.py"
     stdin_open: true
     tty: true
     env_file:
@@ -102,8 +99,10 @@ services:
     volumes:
       - ./tasker:/tasker
       - /var/log/sws/tasker.log:/var/log/sws/tasker.log
+      - /var/log/sws/cronner.log:/var/log/sws/cronner.log
     depends_on:
       - redis
+      - postgres
     restart: always
 
 volumes:
