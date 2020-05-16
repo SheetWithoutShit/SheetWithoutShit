@@ -23,9 +23,7 @@ GET_SPREADSHEET_TOKENS = """
 UPDATE_SPREADSHEET_ID = """
     UPDATE "BUDGET"
        SET spreadsheet = $1
-     WHERE user_id = $2 
-           and year = EXTRACT(YEAR FROM CURRENT_TIMESTAMP)
-           and month = EXTRACT(MONTH FROM CURRENT_TIMESTAMP)
+     WHERE user_id = $2
 """
 
 
@@ -76,5 +74,6 @@ async def create_spreadsheet(pools, telegram_id):
         return
 
     await postgres.execute(UPDATE_SPREADSHEET_ID, response["spreadsheetId"], telegram_id)
+
     # TODO: create task to update sheet with values
     LOG.info("Spreadsheet was successfully created for user=%s", telegram_id)

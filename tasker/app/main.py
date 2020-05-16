@@ -12,7 +12,7 @@ LOG = logging.getLogger("")
 LOG_FORMAT = "%(asctime)s - %(levelname)s: %(name)s: %(message)s"
 
 
-def init_logging():
+def init_logging(filename):
     """
     Initialize logging stream with debug level to console and
     create file logger with info level if permission to file allowed.
@@ -20,7 +20,7 @@ def init_logging():
     logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
 
     log_dir = os.environ.get("LOG_DIR")
-    log_filepath = f"{log_dir}/server.log"
+    log_filepath = f"{log_dir}/{filename}.log"
     if log_dir and os.path.isfile(log_filepath) and os.access(log_filepath, os.W_OK):
         formatter = logging.Formatter(LOG_FORMAT)
         file_handler = logging.FileHandler(log_filepath)
@@ -48,5 +48,5 @@ async def main():
 
 
 if __name__ == '__main__':
-    init_logging()
+    init_logging("tasker")
     asyncio.run(main())
