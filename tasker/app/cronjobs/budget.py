@@ -14,10 +14,9 @@ LOG = logging.getLogger(__name__)
 
 
 INSERT_BUDGET = """
-    INSERT INTO "BUDGET" (income, savings, spreadsheet, user_id, year, month)
+    INSERT INTO "BUDGET" (income, savings, user_id, year, month)
          SELECT income, 
                 savings,
-                spreadsheet,
                 $1, 
                 EXTRACT(YEAR FROM CURRENT_TIMESTAMP),
                 EXTRACT(MONTH FROM CURRENT_TIMESTAMP)
@@ -28,12 +27,10 @@ INSERT_BUDGET = """
 """
 
 GET_USERS = """
-    SELECT user_table.telegram_id, budget.spreadsheet
-      FROM "USER" as user_table
-      LEFT JOIN "BUDGET" as budget ON user_table.telegram_id=budget.user_id
-     WHERE user_table.spreadsheet_refresh_token IS NOT NULL
-           and budget.year = EXTRACT(YEAR FROM CURRENT_TIMESTAMP - interval '1 month')
-           and budget.month = EXTRACT(MONTH FROM CURRENT_TIMESTAMP - interval '1 month');
+    SELECT telegram_id
+      FROM "USER"
+     WHERE spreadsheet_refresh_token IS NOT NULL
+          and spreadsheet IS NOT NULL
 """
 
 

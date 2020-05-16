@@ -21,9 +21,9 @@ GET_SPREADSHEET_TOKENS = """
 """
 
 UPDATE_SPREADSHEET_ID = """
-    UPDATE "BUDGET"
+    UPDATE "USER"
        SET spreadsheet = $1
-     WHERE user_id = $2
+     WHERE telegram_id = $2
 """
 
 

@@ -70,7 +70,7 @@ async def init_clients(app):
     app["redis"] = redis = await RedisPoolManager.create()
 
     app["transaction"] = Transaction(postgres=postgres, redis=redis)
-    app["user"] = User(postgres=postgres, redis=redis, bot=bot)
+    app["user"] = User(postgres=postgres, redis=redis)
     LOG.debug("Clients has successfully initialized.")
 
     yield

@@ -6,7 +6,6 @@
     * savings: user`s savings for certain month in percents.
     * year: year of certain budget.
     * month: month of certain budget.
-    * spreadsheet: spreadsheet id.
     * user_id: foreign key to budget owner.
 */
 
@@ -16,6 +15,5 @@ create table "BUDGET" (
 	savings smallint default 0,
 	year smallint not null,
 	month smallint not null,
-	spreadsheet varchar,
 	user_id int constraint budget_user_fk references "USER" on delete cascade not null
 );

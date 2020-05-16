@@ -6,6 +6,7 @@
     * last_name: user's last name.
     * notification_enabled: does user want to receive notifications about transaction.
     * monobank_token: token to interact with monobank API.
+    * spreadsheet: spreadsheet id.
     * spreadsheet_refresh_token: token to refresh access token for interactions with google spreadsheet API.
 */
 
@@ -15,5 +16,6 @@ create table "USER"(
 	last_name varchar,
 	notifications_enabled boolean default false,
 	monobank_token varchar,
+    spreadsheet varchar,
 	spreadsheet_refresh_token varchar
 );
