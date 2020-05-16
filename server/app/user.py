@@ -14,7 +14,7 @@ CREATE_USER = """
 """
 
 GET_USER = """
-    SELECT user_table.*, budget.spreadsheet, budget.savings
+    SELECT user_table.*, budget.savings
       FROM "USER" as user_table
       LEFT JOIN "BUDGET" as budget ON user_table.telegram_id=budget.user_id
      WHERE telegram_id=$1
@@ -28,7 +28,8 @@ UPDATE_USER = """
            last_name = COALESCE($3, last_name),
            notifications_enabled = COALESCE($4, notifications_enabled),
            monobank_token= COALESCE($5, monobank_token),
-           spreadsheet_refresh_token= COALESCE($6, spreadsheet_refresh_token)
+           spreadsheet = COALESCE($6, spreadsheet),
+           spreadsheet_refresh_token= COALESCE($7, spreadsheet_refresh_token)
      WHERE telegram_id=$1
 """
 
@@ -48,17 +49,6 @@ class User:
         """Initialize user instance with required clients."""
         self._postgres = postgres
         self._redis = redis
-
-    @staticmethod
-    def _format_update_args(args):
-        """Format query arguments for updating user."""
-        return (
-            args.get("first_name"),
-            args.get("last_name"),
-            args.get("notifications_enabled"),
-            args.get("monobank_token"),
-            args.get("spreadsheet_refresh_token")
-        )
 
     async def create_user(self, telegram_id, user):
         """Create new user in database."""
@@ -87,7 +77,14 @@ class User:
 
     async def update_user(self, telegram_id, data):
         """Update user`s data in database by `telegram_id`."""
-        update_args = User._format_update_args(data)
+        update_args = (
+            data.get("first_name"),
+            data.get("last_name"),
+            data.get("notifications_enabled"),
+            data.get("monobank_token"),
+            data.get("spreadsheet"),
+            data.get("spreadsheet_refresh_token")
+        )
         try:
             return await self._postgres.execute(UPDATE_USER, telegram_id, *update_args)
         except exceptions.PostgresError as err:
