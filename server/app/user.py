@@ -14,7 +14,7 @@ CREATE_USER = """
 """
 
 GET_USER = """
-    SELECT user_table.*, budget.savings
+    SELECT user_table.*, budget.savings, budget.income::varchar
       FROM "USER" as user_table
       LEFT JOIN "BUDGET" as budget ON user_table.telegram_id=budget.user_id
      WHERE telegram_id=$1
@@ -33,9 +33,10 @@ UPDATE_USER = """
      WHERE telegram_id=$1
 """
 
-UPDATE_SAVINGS = """
+UPDATE_BUDGET = """
     UPDATE "BUDGET"
-       SET savings=$2
+       SET savings = COALESCE($2, savings),
+           income = COALESCE($3, income)
      WHERE user_id = $1
            and year = EXTRACT(YEAR FROM CURRENT_TIMESTAMP)
            and month = EXTRACT(MONTH FROM CURRENT_TIMESTAMP)
@@ -90,9 +91,13 @@ class User:
         except exceptions.PostgresError as err:
             LOG.error("Could not update user=%s spreadsheet token. Error: %s", telegram_id, err)
 
-    async def update_savings(self, telegram_id, savings):
-        """Update user`s budget savings for the current month."""
+    async def update_budget(self, telegram_id, data):
+        """Update user`s budget for the current month."""
+        update_args = (
+            data.get("savings"),
+            data.get("income")
+        )
         try:
-            return await self._postgres.execute(UPDATE_SAVINGS, telegram_id, savings)
+            return await self._postgres.execute(UPDATE_BUDGET, telegram_id, *update_args)
         except exceptions.PostgresError as err:
-            LOG.error("Could not update user=%s savings. Error: %s", telegram_id, err)
+            LOG.error("Could not update user=%s budget. Error: %s", telegram_id, err)

@@ -130,12 +130,43 @@ def handle_savings_modification(request):
         bot.send_message(request.chat.id, text=messages.OOPS)
         return
 
-    response = bot.api.update_savings(request.chat.id, int(request.text))
+    savings = {"savings": int(request.text)}
+    response = bot.api.update_budget(request.chat.id, savings)
     if not response.get("success"):
         bot.send_message(request.chat.id, text=messages.OOPS)
         return
 
     bot.send_message(request.chat.id, text=messages.SAVINGS_SUCCESS)
+
+
+@bot.message_handler(commands=["income"])
+def handle_income_command(request):
+    """Send step in order to modify user`s income."""
+    response = bot.api.get_user(request.chat.id)
+    if not response.get("success"):
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
+
+    income = response["user"]["income"]
+    text = messages.INCOME_ACTION.format(income=income)
+    message = bot.send_message(request.chat.id, text=text)
+    bot.register_next_step_handler(message, handle_income_modification)
+
+
+@bot.check_command
+def handle_income_modification(request):
+    """Handle step to modify user`s income by provided digit."""
+    if not request.text.strip().isdigit():
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
+
+    income = {"income": float(request.text)}
+    response = bot.api.update_budget(request.chat.id, income)
+    if not response.get("success"):
+        bot.send_message(request.chat.id, text=messages.OOPS)
+        return
+
+    bot.send_message(request.chat.id, text=messages.INCOME_SUCCESS)
 
 
 @bot.message_handler(commands=["notifications_on", "notifications_off"])

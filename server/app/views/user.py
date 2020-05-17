@@ -2,6 +2,8 @@
 
 from aiohttp import web
 
+from validators import validate_budget
+
 
 user_routes = web.RouteTableDef()
 
@@ -82,29 +84,29 @@ class UserView(web.View):
         )
 
 
-@user_routes.put(r"/user/{telegram_id:\d+}/savings")
+@user_routes.put(r"/user/{telegram_id:\d+}/budget")
 async def savings_update_handler(request):
-    """Update user`s savings in database."""
+    """Update user`s budget in database."""
     telegram_id = int(request.match_info["telegram_id"])
     data = await request.json()
 
-    savings = data.get("savings")
-    if not savings or not 0 <= savings <= 100:
+    errors = validate_budget(data)
+    if errors:
         return web.json_response(
             data={
                 "success": False,
-                "message": "Required fields `savings` wasn't provided or incorrect."
+                "message": f"Provided incorrect input: {errors}."
             },
             status=400
         )
 
     user = request.app["user"]
-    updated = await user.update_savings(telegram_id, savings)
+    updated = await user.update_budget(telegram_id, data)
     if not updated:
         return web.json_response(
             data={
                 "success": False,
-                "message": "The savings wasn't updated. Something went wrong. Try again, please."
+                "message": "The budget wasn't updated. Something went wrong. Try again, please."
             },
             status=400
         )
@@ -112,7 +114,7 @@ async def savings_update_handler(request):
     return web.json_response(
         data={
             "success": True,
-            "message": "The savings was successfully updated."
+            "message": "The budget was successfully updated."
         },
         status=200
     )
