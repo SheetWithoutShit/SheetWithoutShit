@@ -11,27 +11,6 @@
     ```
 
 ### Commands
-* Agnostic [[Reference]](https://agnostic.readthedocs.io/en/stable/cli.html#command-line)
-    * Bootstrap the migrations table:
-    ```shell script
-    agnostic -t postgres -u <user> --password <password> -d <db name> -m ./postgres/migrations -h <host> -p <port> bootstrap
-    ```
-    * Run pending migrations:
-    ```shell script
-    agnostic -t postgres -u <user> --password <password> -d <db name> -m ./postgres/migrations -h <host> -p <port> migrate
-    ```
-    * List migrations:
-    ```shell script
-    agnostic -t postgres -u <user> --password <password> -d <db name> -m ./postgres/migrations -h <host> -p <port> list
-    ```
-    * Drop migrations table:
-    ```shell script
-    agnostic -t postgres -u <user> --password <password> -d <db name> -m ./postgres/migrations -h <host> -p <port> drop
-    ```
-    * Test pending migrations:
-    ```shell script
-    agnostic -t postgres -u <user> --password <password> -d <db name> -m ./postgres/migrations -h <host> -p <port> test
-    ```
 * Postgres
     * Run SQL script from the file:
     ```shell script

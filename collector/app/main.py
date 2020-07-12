@@ -63,9 +63,7 @@ async def init_clients(app):
         * postgres pool manager
         * transaction model
     """
-    telegram_bot_token = os.environ["TELEGRAM_BOT_TOKEN"]
-
-    app["bot"] = bot = TelegramBot(telegram_bot_token)
+    app["bot"] = bot = TelegramBot()
     app["postgres"] = postgres = await PGPoolManager.create()
     app["redis"] = redis = await RedisPoolManager.create()
 
