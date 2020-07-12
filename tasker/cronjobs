@@ -1,1 +1,2 @@
 0 0 1 * * /usr/local/bin/python /tasker/app/cronner.py --task create_budgets
+0 0 * * * /usr/local/bin/python /tasker/app/cronner.py --task daily_report

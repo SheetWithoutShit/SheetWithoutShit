@@ -6,6 +6,7 @@ import asyncio
 import aiojobs
 
 from core.http import HTTPRequest
+from core.telegram import TelegramBot
 from core.database.postgres import PoolManager as PGPoolManager
 from core.database.redis import PoolManager as RedisPoolManager
 
@@ -44,7 +45,8 @@ class TaskScheduler:
         pools = {
             "postgres": await PGPoolManager.create(),
             "redis": await RedisPoolManager.create(),
-            "http": HTTPRequest()
+            "http": HTTPRequest(),
+            "bot": TelegramBot()
         }
 
         instance.scheduler = scheduler

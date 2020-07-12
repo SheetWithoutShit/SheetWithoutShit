@@ -49,16 +49,20 @@ class User:
         mcc_codes = await self._redis.get("mcc", deserialize=True, default=[])
         category = mcc_codes.get(transaction["mcc"], "-")
         date = datetime.fromtimestamp(transaction["timestamp"]).strftime("%d.%m.%Y %H:%M:%S")
-        message = TRANSACTION_NOTIFICATION_TEXT.format(
+        text = TRANSACTION_NOTIFICATION_TEXT.format(
             amount=transaction["amount"],
             category=category,
             info=transaction["info"],
             balance=transaction["balance"],
             date=date
         )
-        await self._bot.send_message(
-            chat_id=user_id,
-            text=message,
-            parse_mode="markdown",
-            disable_notification=False
-        )
+        report_task = {
+            "name": "send_message",
+            "kwargs": {
+                "user_id": user_id,
+                "text": text,
+                "parse_mode": "markdown",
+                "disable_notification": False
+            }
+        }
+        await self._redis.publish("task", report_task)

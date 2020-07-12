@@ -2,3 +2,4 @@
 
 from tasks.monobank import *
 from tasks.spreadsheet import *
+from tasks.telegram import *
