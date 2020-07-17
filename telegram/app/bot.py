@@ -17,7 +17,7 @@ class Bot(TeleBot):
         server_port = os.environ["SERVER_PORT"]
         domain = f"{server_host}:{server_port}"
 
-        self.api = API(domain, token)
+        self.api = API(domain)
         self.commands = []
         super().__init__(token)
 

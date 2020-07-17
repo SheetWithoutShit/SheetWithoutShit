@@ -1,6 +1,7 @@
 """This module provides interactions with google spreadsheet auth."""
 
 import os
+import functools
 from urllib import parse
 
 from core.http import HTTPRequest
@@ -21,7 +22,7 @@ class SpreadsheetAuth(HTTPRequest):
         self.client_id = os.environ["SPREADSHEET_CLIENT_ID"]
         self.client_secret = os.environ["SPREADSHEET_CLIENT_SECRET"]
 
-    @property
+    @functools.cached_property
     def auth_url(self):
         """
         Returns formatted URL for further authorizing user

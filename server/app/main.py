@@ -11,10 +11,10 @@ from core.database.redis import PoolManager as RedisPoolManager
 
 from views.user import user_routes
 from views.services import services_routes
-from user import User
-from spreadsheet import SpreadsheetAuth
-from middlewares import check_auth
-from monobank import MonoBankAPI
+from models.user import User
+from models.spreadsheet import SpreadsheetAuth
+from models.monobank import MonoBankAPI
+from middlewares import check_auth, check_permission
 
 
 LOG = logging.getLogger("")
@@ -77,7 +77,7 @@ async def init_constants(app):
     LOG.debug("NGROK forwarding to: %s", ngrok_domain)
 
     constants["NGROK_DOMAIN"] = os.environ["NGROK_DOMAIN"] = ngrok_domain
-    constants["TELEGRAM_TOKEN"] = os.environ["TELEGRAM_BOT_TOKEN"]
+    constants["SECRET_KEY"] = os.environ["SECRET_KEY"]
 
 
 def init_app():
@@ -90,7 +90,9 @@ def init_app():
 
     app.cleanup_ctx.append(init_clients)
     app.on_startup.append(init_constants)
+
     app.middlewares.append(check_auth)
+    app.middlewares.append(check_permission)
 
     return app
 
