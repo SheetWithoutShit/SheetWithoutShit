@@ -62,7 +62,7 @@ def handle_me_command(request):
 @bot.message_handler(commands=["spreadsheet"])
 def handle_spreadsheet_command(request):
     """Send steps to get access to user`s spreadsheet account."""
-    response = bot.api.get_spreadsheet_auth_url()
+    response = bot.api.get_spreadsheet_auth_url
     if not response.get("success"):
         bot.send_message(request.chat.id, text=messages.OOPS)
         return
