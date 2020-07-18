@@ -9,9 +9,9 @@ from core.database.postgres import PoolManager as PGPoolManager
 from core.database.redis import PoolManager as RedisPoolManager
 from core.telegram import TelegramBot
 
-from user import User
 from views import routes
-from transaction import Transaction
+from models.user import User
+from models.transaction import Transaction
 
 
 LOG = logging.getLogger("")
@@ -86,7 +86,9 @@ def init_app():
     app = Application()
 
     init_logging()
+
     app.add_routes(routes)
+
     app.cleanup_ctx.append(init_clients)
     app.cleanup_ctx.append(prepare_data)
 

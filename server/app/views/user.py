@@ -221,8 +221,9 @@ class MonobankView(web.View):
             )
 
         ngrok_domain = self.request.app["constants"]["NGROK_DOMAIN"]
+        secret_key = self.request.app["constants"]["SECRET_KEY"]
         monobank = self.request.app["monobank"]
-        _, status = await monobank.set_webhook(ngrok_domain, self.request.user_id, token)
+        _, status = await monobank.set_webhook(ngrok_domain, self.request.user_id, token, secret_key)
         if status != 200:
             return web.json_response(
                 data={"message": "The `token` isn't correct."},
