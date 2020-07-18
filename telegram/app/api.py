@@ -5,8 +5,7 @@ import json
 import functools
 
 import requests
-
-from utils import encode_jwt
+from core.jwt import encode_jwt
 
 
 def parse_response(func):

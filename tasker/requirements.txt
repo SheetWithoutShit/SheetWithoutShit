@@ -8,4 +8,4 @@ yarl==1.4.2
 attrs==19.3.0
 multidict==4.7.5
 idna==2.9
--e git+https://github.com/SheetWithoutShit/sws-core.git@v0.5.1#egg=core
+-e git+https://github.com/SheetWithoutShit/sws-core.git@v0.5.2#egg=core

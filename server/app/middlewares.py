@@ -2,7 +2,7 @@
 
 from aiohttp import web
 
-from utils.jwt import decode_jwt
+from core.jwt import decode_jwt
 
 
 USER_PATH = "/user"
